@@ -862,47 +862,88 @@
   }
 
   // -------------------------------------------------------------------------
-  // GRAFİKLER (SVG, veriden hesaplanan)
+  // GRAFİKLER (SVG — makale/seaborn tarzı)
   // -------------------------------------------------------------------------
+  const CHART_STYLE = {
+    bg: '#FFFFFF',
+    grid: '#E8EAED',
+    axis: '#5F6368',
+    text: '#202124',
+    muted: '#5F6368',
+    txt: '#4C72B0',   // Bozulmuş Metin
+    img: '#DD8452',   // Görsel Seçimi
+    other: '#BDBDBD'
+  };
+
+  function chartText(x, y, s, opts = {}) {
+    const { size = 11, weight = 400, anchor = 'start', fill = CHART_STYLE.text, rotate = 0 } = opts;
+    const t = rotate ? ` transform="rotate(${rotate} ${x} ${y})"` : '';
+    return `<text x="${x}" y="${y}" font-family="Roboto, Arial, sans-serif" font-size="${size}" font-weight="${weight}" fill="${fill}" text-anchor="${anchor}"${t}>${s}</text>`;
+  }
+
+  function quartileStats(arr) {
+    const a = arr.slice().sort((x, y) => x - y);
+    const n = a.length;
+    if (!n) return null;
+    const q = p => {
+      const idx = (n - 1) * p;
+      const lo = Math.floor(idx), hi = Math.ceil(idx);
+      return a[lo] + (a[hi] - a[lo]) * (idx - lo);
+    };
+    return { n, min: a[0], max: a[n - 1], q1: q(0.25), med: q(0.5), q3: q(0.75) };
+  }
+
   function renderBoxPlot() {
     const el = document.getElementById('chart-boxplot-container');
     const stats = computeStats();
     if (!stats || (!stats.txt.rawDurations.length && !stats.img.rawDurations.length)) {
       el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return;
     }
-
-    const W = 500, H = 200, padL = 140, padR = 30, padT = 30, padB = 35;
+    const S = CHART_STYLE;
+    const W = 520, H = 224, padL = 104, padR = 26, padT = 26, padB = 42;
     const chartW = W - padL - padR;
-    const maxT = Math.max(30, stats.txt.maxDur || 0, stats.img.maxDur || 0);
-    const scX = v => padL + (Math.min(+v, maxT) / maxT) * chartW;
+    const data = [
+      { label: 'Bozulmuş Metin', color: S.txt, vals: stats.txt.rawDurations },
+      { label: 'Görsel Seçimi', color: S.img, vals: stats.img.rawDurations }
+    ].filter(d => d.vals.length);
+    const maxT = Math.max(10, ...data.flatMap(d => d.vals));
+    const niceMax = Math.ceil(maxT / 5) * 5;
+    const scX = v => padL + (v / niceMax) * chartW;
 
-    function box(y, s, label, col) {
-      if (!s.rawDurations.length) return `<text x="135" y="${y+5}" font-family="Inter,sans-serif" font-size="12" fill="#57534E" text-anchor="end">${label}: veri yok</text>`;
-      return `
-        <text x="125" y="${y+5}" font-family="Newsreader,serif" font-size="13" font-weight="600" fill="#1F1E1B" text-anchor="end">${label}</text>
-        <line x1="${scX(s.minDur)}" y1="${y}" x2="${scX(s.maxDur)}" y2="${y}" stroke="#1F1E1B" stroke-width="2"/>
-        <line x1="${scX(s.minDur)}" y1="${y-8}" x2="${scX(s.minDur)}" y2="${y+8}" stroke="#1F1E1B" stroke-width="2"/>
-        <line x1="${scX(s.maxDur)}" y1="${y-8}" x2="${scX(s.maxDur)}" y2="${y+8}" stroke="#1F1E1B" stroke-width="2"/>
-        <rect x="${scX(s.q1)}" y="${y-16}" width="${Math.max(scX(s.q3)-scX(s.q1),2)}" height="32" fill="${col}" stroke="#1F1E1B" stroke-width="2" rx="2"/>
-        <line x1="${scX(s.medDur)}" y1="${y-16}" x2="${scX(s.medDur)}" y2="${y+16}" stroke="#1F1E1B" stroke-width="3.5"/>
-        <text x="${scX(s.medDur)}" y="${y-22}" font-family="Inter,sans-serif" font-size="10" fill="#0E6B5B" text-anchor="middle" font-weight="600">${s.medDur}s</text>
-      `;
-    }
-
-    let ticks = '';
-    for (let t = 0; t <= maxT; t += 5) {
+    let grid = '';
+    for (let t = 0; t <= niceMax; t += 5) {
       const x = scX(t);
-      ticks += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}" stroke="#EDE8DE" stroke-width="1"/>
-        <line x1="${x}" y1="${H-padB}" x2="${x}" y2="${H-padB+5}" stroke="#1F1E1B" stroke-width="1.5"/>
-        <text x="${x}" y="${H-padB+18}" font-family="Inter,sans-serif" font-size="10" fill="#57534E" text-anchor="middle">${t}s</text>`;
+      grid += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${H - padB}" stroke="${S.grid}" stroke-width="1"/>` +
+        chartText(x, H - padB + 18, t + ' sn', { anchor: 'middle', size: 10, fill: S.muted });
     }
 
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Box Plot">
-      <rect width="${W}" height="${H}" fill="#FAF9F6"/>
-      ${ticks}
-      <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#1F1E1B" stroke-width="2"/>
-      ${box(70, stats.txt, 'Metin', '#DDD7CC')}
-      ${box(130, stats.img, 'Görsel', '#C6DED9')}
+    const rows = data.map((d, i) => {
+      const y = padT + 46 + i * 62;
+      const st = quartileStats(d.vals);
+      if (!st) return '';
+      const pts = d.vals.map((v, j) => {
+        const jitter = ((j % 5) - 2) * 4.2;
+        return `<circle cx="${scX(v)}" cy="${y + jitter}" r="3.6" fill="${d.color}" fill-opacity="0.55"/>`;
+      }).join('');
+      return `
+        <rect x="${scX(st.q1)}" y="${y - 16}" width="${Math.max(scX(st.q3) - scX(st.q1), 2)}" height="32" fill="${d.color}" fill-opacity="0.30" stroke="${d.color}" stroke-width="1.8" rx="2"/>
+        <line x1="${scX(st.min)}" y1="${y}" x2="${scX(st.max)}" y2="${y}" stroke="${d.color}" stroke-width="1.8"/>
+        <line x1="${scX(st.min)}" y1="${y - 7}" x2="${scX(st.min)}" y2="${y + 7}" stroke="${d.color}" stroke-width="1.8"/>
+        <line x1="${scX(st.max)}" y1="${y - 7}" x2="${scX(st.max)}" y2="${y + 7}" stroke="${d.color}" stroke-width="1.8"/>
+        <line x1="${scX(st.med)}" y1="${y - 16}" x2="${scX(st.med)}" y2="${y + 16}" stroke="${S.text}" stroke-width="3"/>
+        ${pts}
+        ${chartText(padL - 10, y + 5, d.label, { anchor: 'end', size: 12, weight: 600 })}
+        ${chartText(scX(st.med), y - 22, st.med.toFixed(1) + ' sn', { anchor: 'middle', size: 10, weight: 600, fill: d.color })}
+        ${chartText(scX(st.max) + 6, y - 14, 'n=' + st.n, { size: 9, fill: S.muted })}
+      `;
+    }).join('');
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Tamamlama süresi dağılımı">
+      <rect width="${W}" height="${H}" fill="${S.bg}"/>
+      ${grid}
+      <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="${S.axis}" stroke-width="1.2"/>
+      ${rows}
+      ${chartText(W / 2, H - 8, 'Tamamlama süresi (sn) — zaman aşımı hariç, kutular Q1–Q3, bıyıklar min–maks', { anchor: 'middle', size: 9.5, fill: S.muted })}
     </svg>`;
   }
 
@@ -910,22 +951,44 @@
     const el = document.getElementById('chart-accuracy-container');
     const stats = computeStats();
     if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
+    const S = CHART_STYLE;
+    const W = 480, H = 208, padL = 132, padR = 30, padT = 34, padB = 40;
+    const chartW = W - padL - padR;
+    const metrics = [
+      { label: 'İlk deneme doğruluğu', txt: stats.txt.firstOkPct, img: stats.img.firstOkPct },
+      { label: 'Tamamlama oranı', txt: stats.txt.completionPct, img: stats.img.completionPct }
+    ];
+    const scX = pct => padL + (Math.min(100, Math.max(0, pct)) / 100) * chartW;
 
-    const W = 480, H = 160, padL = 150, barW = 260;
-    const scX = pct => (pct/100)*barW;
+    let grid = '';
+    [0, 25, 50, 75, 100].forEach(p => {
+      grid += `<line x1="${scX(p)}" y1="${padT}" x2="${scX(p)}" y2="${H - padB}" stroke="${S.grid}" stroke-width="1"/>` +
+        chartText(scX(p), H - padB + 18, '%' + p, { anchor: 'middle', size: 10, fill: S.muted });
+    });
 
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Doğruluk Grafik">
-      <rect width="${W}" height="${H}" fill="#FAF9F6"/>
-      ${[0,25,50,75,100].map(p=>`
-        <line x1="${padL+scX(p)}" y1="10" x2="${padL+scX(p)}" y2="${H-20}" stroke="#EDE8DE" stroke-width="1"/>
-        <text x="${padL+scX(p)}" y="${H-5}" font-family="Inter,sans-serif" font-size="10" fill="#57534E" text-anchor="middle">%${p}</text>
-      `).join('')}
-      <text x="135" y="48" font-family="Newsreader,serif" font-size="12" font-weight="600" fill="#1F1E1B" text-anchor="end">Metin: İlk Deneme</text>
-      <rect x="${padL}" y="33" width="${scX(stats.txt.firstOkPct)}" height="22" fill="#9A3B26" stroke="#1F1E1B" stroke-width="1.5" rx="2"/>
-      <text x="${padL+scX(stats.txt.firstOkPct)+6}" y="49" font-family="Inter,sans-serif" font-size="11" fill="#1F1E1B" font-weight="600">%${stats.txt.firstOkPct}</text>
-      <text x="135" y="90" font-family="Newsreader,serif" font-size="12" font-weight="600" fill="#1F1E1B" text-anchor="end">Görsel: İlk Deneme</text>
-      <rect x="${padL}" y="75" width="${scX(stats.img.firstOkPct)}" height="22" fill="#0E6B5B" stroke="#1F1E1B" stroke-width="1.5" rx="2"/>
-      <text x="${padL+scX(stats.img.firstOkPct)+6}" y="91" font-family="Inter,sans-serif" font-size="11" fill="#0E6B5B" font-weight="600">%${stats.img.firstOkPct}</text>
+    const barH = 15;
+    const groupH = (H - padT - padB) / metrics.length;
+    const bars = metrics.map((m, i) => {
+      const y0 = padT + i * groupH + 6;
+      const bar = (y, val, color) => {
+        const w = scX(val) - padL;
+        return `<rect x="${padL}" y="${y}" width="${Math.max(w, 1)}" height="${barH}" fill="${color}" fill-opacity="0.9" rx="2"/>` +
+          chartText(padL + Math.max(w, 1) + 6, y + barH - 3, '%' + val, { size: 10, weight: 600, fill: color });
+      };
+      return chartText(padL - 10, y0 + 12, m.label, { anchor: 'end', size: 11, weight: 600 }) +
+        bar(y0, m.txt, S.txt) +
+        bar(y0 + barH + 6, m.img, S.img);
+    }).join('');
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Doğruluk ve tamamlama oranları">
+      <rect width="${W}" height="${H}" fill="${S.bg}"/>
+      ${grid}
+      <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="${S.axis}" stroke-width="1.2"/>
+      ${bars}
+      <g transform="translate(${padL}, 8)">
+        <rect x="0" y="0" width="12" height="12" fill="${S.txt}" rx="2"/><text x="16" y="10" font-family="Roboto, Arial" font-size="10" fill="${S.text}">Bozulmuş Metin</text>
+        <rect x="128" y="0" width="12" height="12" fill="${S.img}" rx="2"/><text x="144" y="10" font-family="Roboto, Arial" font-size="10" fill="${S.text}">Görsel Seçimi</text>
+      </g>
     </svg>`;
   }
 
@@ -933,30 +996,48 @@
     const el = document.getElementById('chart-perception-container');
     const stats = computeStats();
     if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
+    const S = CHART_STYLE;
+    const W = 460, H = 300, padL = 58, padR = 26, padT = 24, padB = 48;
+    const cW = W - padL - padR, cH = H - padT - padB;
+    const scX = v => padL + ((v - 1) / 6) * cW;
+    const scY = v => H - padB - ((v - 1) / 6) * cH;
 
-    const W=460, H=260, pad=60, cW=W-pad*2, cH=H-pad*2;
-    const scX = v => pad + ((v-1)/6)*cW;
-    const scY = v => H-pad - ((v-1)/6)*cH;
-    const txtD = parseFloat(stats.txt.avgDiff)||0;
-    const txtS = parseFloat(stats.txt.avgSec)||0;
-    const imgD = parseFloat(stats.img.avgDiff)||0;
-    const imgS = parseFloat(stats.img.avgSec)||0;
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    const surveyVal = (p, cond, k, alt) => {
+      const s = p[cond]?.survey || {};
+      return s[k] || s[alt] || null;
+    };
+    const pointsFor = (cond, color) => visible.map(p => {
+      const d = surveyVal(p, cond, 'perceivedDifficulty', 'perceived_difficulty');
+      const sec = surveyVal(p, cond, 'perceivedSecurity', 'perceived_security');
+      if (!d || !sec) return '';
+      return `<circle cx="${scX(d)}" cy="${scY(sec)}" r="4.4" fill="${color}" fill-opacity="0.5"/>`;
+    }).join('');
 
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Algı Matrisi">
-      <rect width="${W}" height="${H}" fill="#FAF9F6"/>
-      ${[1,2,3,4,5,6,7].map(v=>`
-        <line x1="${scX(v)}" y1="${pad}" x2="${scX(v)}" y2="${H-pad}" stroke="#EDE8DE" stroke-width="1"/>
-        <line x1="${pad}" y1="${scY(v)}" x2="${W-pad}" y2="${scY(v)}" stroke="#EDE8DE" stroke-width="1"/>
-        <text x="${scX(v)}" y="${H-pad+15}" font-family="Inter,sans-serif" font-size="10" fill="#57534E" text-anchor="middle">${v}</text>
-        <text x="${pad-8}" y="${scY(v)+4}" font-family="Inter,sans-serif" font-size="10" fill="#57534E" text-anchor="end">${v}</text>
-      `).join('')}
-      <line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#1F1E1B" stroke-width="2"/>
-      <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" stroke="#1F1E1B" stroke-width="2"/>
-      <text x="${W/2}" y="${H-8}" font-family="Inter,sans-serif" font-size="11" fill="#57534E" text-anchor="middle">Zorluk (1-7)</text>
-      ${txtD&&txtS?`<circle cx="${scX(txtD)}" cy="${scY(txtS)}" r="9" fill="#9A3B26" stroke="#1F1E1B" stroke-width="2"/>
-        <text x="${scX(txtD)+14}" y="${scY(txtS)+4}" font-family="Inter,sans-serif" font-size="11" fill="#9A3B26" font-weight="700">Metin (${txtD},${txtS})</text>`:''}
-      ${imgD&&imgS?`<circle cx="${scX(imgD)}" cy="${scY(imgS)}" r="9" fill="#0E6B5B" stroke="#1F1E1B" stroke-width="2"/>
-        <text x="${scX(imgD)+14}" y="${scY(imgS)+4}" font-family="Inter,sans-serif" font-size="11" fill="#0E6B5B" font-weight="700">Görsel (${imgD},${imgS})</text>`:''}
+    let grid = '';
+    for (let v = 1; v <= 7; v++) {
+      grid += `<line x1="${scX(v)}" y1="${padT}" x2="${scX(v)}" y2="${H - padB}" stroke="${S.grid}" stroke-width="1"/>` +
+        `<line x1="${padL}" y1="${scY(v)}" x2="${W - padR}" y2="${scY(v)}" stroke="${S.grid}" stroke-width="1"/>` +
+        chartText(scX(v), H - padB + 16, v, { anchor: 'middle', size: 10, fill: S.muted }) +
+        chartText(padL - 8, scY(v) + 4, v, { anchor: 'end', size: 10, fill: S.muted });
+    }
+
+    const txtD = parseFloat(stats.txt.avgDiff) || 0, txtS = parseFloat(stats.txt.avgSec) || 0;
+    const imgD = parseFloat(stats.img.avgDiff) || 0, imgS = parseFloat(stats.img.avgSec) || 0;
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Algılanan zorluk ve güvenlik">
+      <rect width="${W}" height="${H}" fill="${S.bg}"/>
+      ${grid}
+      <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="${S.axis}" stroke-width="1.2"/>
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="${S.axis}" stroke-width="1.2"/>
+      ${pointsFor('condition_text', S.txt)}
+      ${pointsFor('condition_image', S.img)}
+      ${txtD ? `<circle cx="${scX(txtD)}" cy="${scY(txtS)}" r="7.5" fill="${S.txt}" stroke="${S.text}" stroke-width="1.5"/>` +
+        chartText(scX(txtD) + 12, scY(txtS) + 4, `Metin (${txtD}, ${txtS})`, { size: 10, weight: 600, fill: S.txt }) : ''}
+      ${imgD ? `<circle cx="${scX(imgD)}" cy="${scY(imgS)}" r="7.5" fill="${S.img}" stroke="${S.text}" stroke-width="1.5"/>` +
+        chartText(scX(imgD) + 12, scY(imgS) + 4, `Görsel (${imgD}, ${imgS})`, { size: 10, weight: 600, fill: S.img }) : ''}
+      ${chartText(W / 2, H - 8, 'Algılanan zorluk (1–7)', { anchor: 'middle', size: 10, fill: S.muted })}
+      ${chartText(14, padT + cH / 2, 'Algılanan güvenlik (1–7)', { anchor: 'middle', size: 10, fill: S.muted, rotate: -90 })}
     </svg>`;
   }
 
@@ -964,34 +1045,43 @@
     const el = document.getElementById('chart-preferences-container');
     const stats = computeStats();
     if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
-
-    const W=480, H=180, padL=170, barW=240;
+    const S = CHART_STYLE;
+    const W = 480, H = 200, padL = 118, padT = 34, barW = 316;
     const n = stats.n || 1;
     const pref = stats.prefCounts;
+    const rows = [
+      { label: 'Daha kolay', key: 'easier' },
+      { label: 'Daha hızlı', key: 'faster' },
+      { label: 'Daha güvenli', key: 'safer' }
+    ];
 
-    function prefBar(y, label, counts) {
-      const imgN = counts['Görsel Seçimi'] || 0;
-      const txtN = counts['Bozulmuş Metin'] || 0;
-      const othN = n - imgN - txtN;
-      const wImg = (imgN/n)*barW, wTxt = (txtN/n)*barW, wOth = (othN/n)*barW;
-      return `
-        <text x="155" y="${y+14}" font-family="Newsreader,serif" font-size="12" font-weight="600" fill="#1F1E1B" text-anchor="end">${label}</text>
-        <rect x="${padL}" y="${y}" width="${wImg}" height="22" fill="#0E6B5B" stroke="#1F1E1B" stroke-width="1"/>
-        ${wImg>20?`<text x="${padL+wImg/2}" y="${y+15}" font-family="Inter,sans-serif" font-size="10" fill="#FAF9F6" text-anchor="middle">${imgN}</text>`:''}
-        <rect x="${padL+wImg}" y="${y}" width="${wTxt}" height="22" fill="#888177" stroke="#1F1E1B" stroke-width="1"/>
-        ${wTxt>20?`<text x="${padL+wImg+wTxt/2}" y="${y+15}" font-family="Inter,sans-serif" font-size="10" fill="#FAF9F6" text-anchor="middle">${txtN}</text>`:''}
-        <rect x="${padL+wImg+wTxt}" y="${y}" width="${wOth}" height="22" fill="#D8D1C4" stroke="#1F1E1B" stroke-width="1"/>
-      `;
-    }
+    const bars = rows.map((r, i) => {
+      const c = pref[r.key] || {};
+      const img = c['Görsel Seçimi'] || 0;
+      const txt = c['Bozulmuş Metin'] || 0;
+      const oth = Math.max(0, n - img - txt);
+      const y = padT + i * 48;
+      const wImg = (img / n) * barW, wTxt = (txt / n) * barW, wOth = (oth / n) * barW;
+      const seg = (x, w, color, count) =>
+        w > 0
+          ? `<rect x="${padL + x}" y="${y}" width="${w}" height="22" fill="${color}" rx="2"/>` +
+            (w > 26 ? chartText(padL + x + w / 2, y + 15, String(count), { anchor: 'middle', size: 10, weight: 600, fill: '#FFFFFF' }) : '')
+          : '';
+      return chartText(padL - 10, y + 15, r.label, { anchor: 'end', size: 11, weight: 600 }) +
+        seg(0, wImg, S.img, img) +
+        seg(wImg, wTxt, S.txt, txt) +
+        seg(wImg + wTxt, wOth, S.other, oth);
+    }).join('');
 
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Tercih Grafik">
-      <rect width="${W}" height="${H}" fill="#FAF9F6"/>
-      <rect x="${padL}" y="8" width="14" height="12" fill="#0E6B5B"/><text x="${padL+18}" y="19" font-family="Inter,sans-serif" font-size="10" fill="#1F1E1B">Görsel</text>
-      <rect x="${padL+80}" y="8" width="14" height="12" fill="#888177"/><text x="${padL+98}" y="19" font-family="Inter,sans-serif" font-size="10" fill="#1F1E1B">Metin</text>
-      <rect x="${padL+155}" y="8" width="14" height="12" fill="#D8D1C4"/><text x="${padL+173}" y="19" font-family="Inter,sans-serif" font-size="10" fill="#1F1E1B">Fark Yok</text>
-      ${prefBar(35, 'Daha Kolay:', pref.easier||{})}
-      ${prefBar(70, 'Daha Hızlı:', pref.faster||{})}
-      ${prefBar(105, 'Daha Güvenli:', pref.safer||{})}
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Tercih dağılımı">
+      <rect width="${W}" height="${H}" fill="${S.bg}"/>
+      <g transform="translate(${padL}, 10)">
+        <rect x="0" y="0" width="12" height="12" fill="${S.img}" rx="2"/><text x="16" y="10" font-family="Roboto, Arial" font-size="10" fill="${S.text}">Görsel Seçimi</text>
+        <rect x="120" y="0" width="12" height="12" fill="${S.txt}" rx="2"/><text x="136" y="10" font-family="Roboto, Arial" font-size="10" fill="${S.text}">Bozulmuş Metin</text>
+        <rect x="258" y="0" width="12" height="12" fill="${S.other}" rx="2"/><text x="274" y="10" font-family="Roboto, Arial" font-size="10" fill="${S.text}">Fark Yok</text>
+      </g>
+      ${bars}
+      ${chartText(W / 2, H - 8, 'Katılımcı tercihi (kişi sayısı)', { anchor: 'middle', size: 10, fill: S.muted })}
     </svg>`;
   }
 

@@ -7,6 +7,7 @@ Araştırma Konusu*.pdf
 # Geçici test dosyaları
 _*.js
 _*.ps1
+_*.txt
 
 # İşletim sistemi dosyaları
 .DS_Store
@@ -15,3 +16,6 @@ desktop.ini
 
 # Bağımlılıklar (ileride gerekirse)
 node_modules/
+
+# Üretilen grafik çıktıları (script ile yeniden üretilebilir)
+figures/

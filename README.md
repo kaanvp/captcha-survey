@@ -198,6 +198,15 @@ Ana deney açılmadan önce 3–5 kişilik bir pilot grup ile şu maddeler doğr
 3. **Zaman Aşımları:** Zaman aşımına uğrayan kayıtlar süre analizine dahil edilmez, ayrıca "zaman aşımı oranı" olarak raporlanır.
 4. **Likert Puanları:** 1-7 Likert verileri sıra ölçekli olduğu için medyan ve mod değerleriyle birlikte raporlanır.
 
+### Makale Figürleri (matplotlib + seaborn)
+`scripts/generate_charts.py`, `data/results.json` (veya panelden indirilen JSON) üzerinden 300 dpi makale figürleri üretir:
+- **Fig 1:** Tamamlama süresi dağılımı (kutu + nokta, zaman aşımı hariç)
+- **Fig 2:** İlk deneme doğruluğu ve tamamlama oranı
+- **Fig 3:** Algılanan zorluk ile algılanan güvenlik ilişkisi
+- **Fig 4:** Katılımcı tercihleri
+
+Kullanım: `python scripts/generate_charts.py --input data/results.json --outdir figures`
+
 ---
 
 ## 9. Kaynakça (Literature References)
