@@ -140,22 +140,27 @@ def fig_accuracy(rows, outdir):
         first = sum(1 for r in sub if r["first_ok"]) / n * 100 if n else 0
         solved = sum(1 for r in sub if r["outcome"] == "solved") / n * 100 if n else 0
         stats[cond] = (first, solved)
-    labels = ["İlk deneme doğruluğu", "Tamamlama oranı"]
-    x = np.arange(len(labels))
-    width = 0.34
-    fig, ax = plt.subplots(figsize=(5.0, 3.2))
-    ax.bar(x - width / 2, [stats["text"][0], stats["text"][1]], width,
-           label="Bozulmuş Metin", color=TXT, alpha=0.9)
-    ax.bar(x + width / 2, [stats["image"][0], stats["image"][1]], width,
-           label="Görsel Seçimi", color=IMG, alpha=0.9)
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.set_ylim(0, 105)
-    ax.set_ylabel("%")
+
+    metrics = ["İlk deneme doğruluğu", "Tamamlama oranı"]
+    y = np.arange(len(metrics))
+    h = 0.34
+    fig, ax = plt.subplots(figsize=(6.2, 2.9))
+    txt_vals = [stats["text"][0], stats["text"][1]]
+    img_vals = [stats["image"][0], stats["image"][1]]
+    ax.barh(y - h / 2, txt_vals, h, label="Bozulmuş Metin", color=TXT, alpha=0.9)
+    ax.barh(y + h / 2, img_vals, h, label="Görsel Seçimi", color=IMG, alpha=0.9)
+    ax.set_yticks(y)
+    ax.set_yticklabels(metrics)
+    ax.invert_yaxis()
+    ax.set_xlim(0, 112)
+    ax.set_xlabel("%")
     ax.set_title("İlk deneme doğruluğu ve tamamlama oranı")
-    ax.legend(frameon=False, loc="upper left")
-    for c in ax.containers:
-        ax.bar_label(c, fmt="%.1f", padding=2, fontsize=8)
+    ax.legend(frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.26), ncol=2)
+    for container in ax.containers:
+        for bar in container:
+            w = bar.get_width()
+            ax.text(w + 1.5, bar.get_y() + bar.get_height() / 2, "%.0f" % w,
+                    va="center", fontsize=8, color="#202124")
     save(fig, outdir, "fig2_dogruluk_tamamlama.png")
 
 

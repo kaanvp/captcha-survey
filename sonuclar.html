@@ -952,7 +952,7 @@
     const stats = computeStats();
     if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
     const S = CHART_STYLE;
-    const W = 480, H = 208, padL = 132, padR = 30, padT = 34, padB = 40;
+    const W = 480, H = 200, padL = 150, padR = 34, padT = 34, padB = 34;
     const chartW = W - padL - padR;
     const metrics = [
       { label: 'İlk deneme doğruluğu', txt: stats.txt.firstOkPct, img: stats.img.firstOkPct },
@@ -966,18 +966,18 @@
         chartText(scX(p), H - padB + 18, '%' + p, { anchor: 'middle', size: 10, fill: S.muted });
     });
 
-    const barH = 15;
+    const barH = 14;
     const groupH = (H - padT - padB) / metrics.length;
     const bars = metrics.map((m, i) => {
-      const y0 = padT + i * groupH + 6;
+      const yc = padT + i * groupH + groupH / 2;
       const bar = (y, val, color) => {
-        const w = scX(val) - padL;
-        return `<rect x="${padL}" y="${y}" width="${Math.max(w, 1)}" height="${barH}" fill="${color}" fill-opacity="0.9" rx="2"/>` +
-          chartText(padL + Math.max(w, 1) + 6, y + barH - 3, '%' + val, { size: 10, weight: 600, fill: color });
+        const w = Math.max(scX(val) - padL, 1);
+        return `<rect x="${padL}" y="${y}" width="${w}" height="${barH}" fill="${color}" fill-opacity="0.9" rx="2"/>` +
+          chartText(padL + w + 6, y + barH - 3, '%' + val, { size: 10, weight: 600, fill: color });
       };
-      return chartText(padL - 10, y0 + 12, m.label, { anchor: 'end', size: 11, weight: 600 }) +
-        bar(y0, m.txt, S.txt) +
-        bar(y0 + barH + 6, m.img, S.img);
+      return chartText(padL - 12, yc + 4, m.label, { anchor: 'end', size: 11, weight: 600 }) +
+        bar(yc - barH - 2, m.txt, S.txt) +
+        bar(yc + 2, m.img, S.img);
     }).join('');
 
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Doğruluk ve tamamlama oranları">
