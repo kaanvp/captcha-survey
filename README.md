@@ -172,9 +172,9 @@ Kullanıcı deneyi yerel bir test ortamında çalıştırıldığında veya Netl
 - Ayrıca tamamlanan her deney otomatik olarak tarayıcı `localStorage`'ına (`captcha_submissions`) kaydedilir; araştırmacı paneli aynı tarayıcıda bu kayıtları `data/results.json` ile birleştirerek gösterir (statik sitede sunucu tarafı yazma yoktur; bu yüzden aynı tarayıcı ve aynı adres kullanılmalıdır).
 
 ### Araştırmacı Paneli Erişimi (sonuclar.html)
-- Panelde **giriş ekranı yoktur**. Sonuçlar yalnızca doğru bağlantı adresiyle açılır: `sonuclar.html?key=kaan1234`.
-- Şifreyi değiştirmek için `sonuclar.html` içindeki `ACCESS_PASSWORD` sabitini düzenleyiniz.
-- Not: Bu, yalnızca araştırmacıyı ayırt etmeye yönelik **basit istemci tarafı korumadır**; gerçek erişim kontrolü için Netlify panelinden **Site Settings → Access → Password Protection** kullanılmalıdır.
+- Panelde **giriş ekranı yoktur**. Sonuçlar yalnızca doğru anahtar bağlantısıyla açılır; anahtar araştırmacıya ayrıca iletilir ve **repoda düz metin olarak tutulmaz**.
+- Kodda anahtar **düz metin olarak saklanmaz**; tuzlu hash ile doğrulanır. Anahtarı değiştirmek için `sonuclar.html` içindeki `ACCESS_HASH` değerini yeni anahtarın hash'i ile güncelleyin.
+- Not: Bu, yalnızca araştırmacıyı ayırt etmeye yönelik **basit istemci tarafı gizlemedir** (tek başına gerçek güvenlik değildir). Gerçek erişim kontrolü için Netlify panelinden **Site Settings → Access → Password Protection** veya bir **Netlify Function** kullanılmalıdır.
 
 ---
 

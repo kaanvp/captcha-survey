@@ -379,25 +379,24 @@
   let deletedIds = new Set();
 
   // -------------------------------------------------------------------------
-  // Erişim kontrolü — giriş ekranı YOK.
-  // Sonuçlar yalnızca doğru bağlantıyla (?key=kaan1234) görünür;
-  // aksi halde yalnızca "Erişim Yok" mesajı gösterilir.
+  // Erişim kontrolü — giriş ekranı YOK, şifre kaynakta DÜZ METİN değil.
+  // Sonuçlar yalnızca doğru anahtarla (?key=...) görünür; anahtar tuzlu hash
+  // ile doğrulanır. Aksi halde yalnızca "Erişim Yok" gösterilir.
+  // NOT: İstemci taraflı kapı gizleme sağlar; gerçek koruma için Netlify
+  // Functions / şifre koruması gerekir.
   // -------------------------------------------------------------------------
-  const ACCESS_PASSWORD = 'kaan1234';
+  const ACCESS_HASH = 'c67b92a8';
   const ACCESS_PARAM = 'key';
-
   let authorized = false;
-  try {
-    const params = new URLSearchParams(window.location.search);
-    authorized = params.get(ACCESS_PARAM) === ACCESS_PASSWORD;
-  } catch (e) { authorized = false; }
 
-  if (!authorized) {
-    document.querySelectorAll('.site-header, .researcher-banner, main, .site-footer, #participant-detail-modal')
-      .forEach(el => { el.style.display = 'none'; });
-    const denied = document.getElementById('access-denied');
-    if (denied) denied.style.display = 'flex';
-    throw new Error('Erişim yetkisi yok');
+  function hashKey(input) {
+    const s = 'hci|2026|' + String(input) + '|captcha';
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return ('00000000' + h.toString(16)).slice(-8);
   }
 
   // -------------------------------------------------------------------------
@@ -416,6 +415,7 @@
   // Veri Yükleme
   // -------------------------------------------------------------------------
   async function loadData() {
+    if (!authorized) return;
     try {
       const res = await fetch('data/results.json');
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1012,8 +1012,24 @@
     };
   }
 
-  // Başlat
-  loadData();
+  // Başlat — önce erişim doğrulaması (şifre düz metin olarak saklanmaz)
+  (function bootPanel() {
+    let key = '';
+    try {
+      key = new URLSearchParams(window.location.search).get(ACCESS_PARAM) || '';
+    } catch (e) { key = ''; }
+
+    if (key === '' || hashKey(key) !== ACCESS_HASH) {
+      document.querySelectorAll('.site-header, .researcher-banner, main, .site-footer, #participant-detail-modal')
+        .forEach(el => { el.style.display = 'none'; });
+      const denied = document.getElementById('access-denied');
+      if (denied) denied.style.display = 'flex';
+      return;
+    }
+
+    authorized = true;
+    loadData();
+  })();
   </script>
 </body>
 </html>
