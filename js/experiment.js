@@ -596,11 +596,13 @@ class ExperimentController {
       body: formData.toString()
     })
     .then(response => {
-      // Netlify başarıyla kabul ettiğinde
+      // Yalnızca gerçekten başarılı (2xx) yanıtta başarı göster.
+      // Cloudflare Pages gibi static hostlarda POST "/" 404/405 döner → fallback'e düşer.
+      if (!response.ok) throw new Error("Form uç noktası HTTP " + response.status);
       this.showCompletionScreen(payload, true);
     })
     .catch(err => {
-      console.warn("Netlify Form iletimi (yerel ortam veya çevrimdışı fallback):", err);
+      console.warn("Form iletimi (Netlify dışı/yerel ortam fallback):", err);
       // Fallback: Kullanıcıya kopyalanabilir JSON sun
       this.showCompletionScreen(payload, false);
     });
