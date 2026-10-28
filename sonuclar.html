@@ -281,24 +281,38 @@
 
         <div class="chart-grid">
           <div class="chart-container-box">
-            <h3 style="margin-top:0;">Tamamlanma Süresi Dağılımı (Kutu + Nokta)</h3>
-            <p class="text-small text-muted">Zaman aşımına uğrayan denemeler dahil değil.</p>
+            <h3 style="margin-top:0;">Tamamlanma Süresi (Keman + Nokta)</h3>
+            <p class="text-small text-muted">Zaman aşımı hariç · nokta = katılımcı · ◆ = ortalama ± SS.</p>
             <div id="chart-boxplot-container"></div>
           </div>
 
           <div class="chart-container-box">
-            <h3 style="margin-top:0;">İlk Deneme Doğruluğu ve Tamamlama Oranı</h3>
+            <h3 style="margin-top:0;">İlk Deneme Doğruluğu ve Tamamlama</h3>
+            <p class="text-small text-muted">Katılımcı bazlı ortalama ± %95 güven aralığı.</p>
             <div id="chart-accuracy-container"></div>
           </div>
 
           <div class="chart-container-box">
-            <h3 style="margin-top:0;">Algılanan Zorluk vs. Algılanan Güvenlik</h3>
+            <h3 style="margin-top:0;">Deneme Sonuç Kompozisyonu</h3>
+            <p class="text-small text-muted">Her koşulda denemelerin %100 yığılmış dağılımı.</p>
+            <div id="chart-composition-container"></div>
+          </div>
+
+          <div class="chart-container-box">
+            <h3 style="margin-top:0;">Algılanan Zorluk ve Güvenlik (Likert 1–7)</h3>
+            <p class="text-small text-muted">Kutu = dağılım · nokta = katılımcı.</p>
+            <div id="chart-likert-container"></div>
+          </div>
+
+          <div class="chart-container-box">
+            <h3 style="margin-top:0;">Algılanan Zorluk × Güvenlik (Saçılım)</h3>
             <p class="text-small text-muted">Her nokta bir katılımcı; büyük işaret koşul ortalaması; kesikli çizgi 45° referans.</p>
             <div id="chart-perception-container"></div>
           </div>
 
           <div class="chart-container-box">
             <h3 style="margin-top:0;">Kullanıcı Tercihleri</h3>
+            <p class="text-small text-muted">Sorulara göre katılımcı sayısı (dodged).</p>
             <div id="chart-preferences-container"></div>
           </div>
         </div>
@@ -454,6 +468,8 @@
     renderQualitativeQuotes();
     renderBoxPlot();
     renderAccuracyChart();
+    renderComposition();
+    renderLikert();
     renderPerceptionChart();
     renderPreferencesChart();
     updateCount();
@@ -893,6 +909,28 @@
     return { n, min: a[0], max: a[n - 1], q1: q(0.25), med: q(0.5), q3: q(0.75) };
   }
 
+  function meanOf(a) { return a.reduce((x, y) => x + y, 0) / a.length; }
+  function stdOf(a) {
+    const m = meanOf(a);
+    return Math.sqrt(a.reduce((s, v) => s + (v - m) * (v - m), 0) / Math.max(a.length - 1, 1));
+  }
+  function kdeAt(values, x, bw) {
+    let s = 0;
+    for (const v of values) s += Math.exp(-0.5 * ((x - v) / bw) ** 2);
+    return s / (values.length * bw * Math.sqrt(2 * Math.PI));
+  }
+  function bootCI(values, n = 600) {
+    if (values.length < 2) return [values[0] || 0, values[0] || 0];
+    const means = [];
+    for (let k = 0; k < n; k++) {
+      let s = 0;
+      for (let i = 0; i < values.length; i++) s += values[Math.floor(Math.random() * values.length)];
+      means.push(s / values.length);
+    }
+    means.sort((a, b) => a - b);
+    return [means[Math.floor(n * 0.025)], means[Math.floor(n * 0.975)]];
+  }
+
   function renderBoxPlot() {
     const el = document.getElementById('chart-boxplot-container');
     const stats = computeStats();
@@ -900,7 +938,7 @@
       el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return;
     }
     const S = CHART_STYLE;
-    const W = 520, H = 300, padL = 56, padR = 26, padT = 28, padB = 46;
+    const W = 620, H = 340, padL = 58, padR = 26, padT = 30, padB = 48;
     const chartW = W - padL - padR, chartH = H - padT - padB;
     const data = [
       { label: 'Bozulmuş Metin', color: S.txt, vals: stats.txt.rawDurations },
@@ -908,9 +946,9 @@
     ].filter(d => d.vals.length);
     const maxT = Math.max(10, ...data.flatMap(d => d.vals));
     const niceMax = Math.ceil(maxT / 5) * 5;
-    const scY = v => H - padB - (v / niceMax) * chartH;
+    const scY = v => H - padB - (Math.max(0, Math.min(v, niceMax)) / niceMax) * chartH;
     const xCenter = i => padL + chartW / (data.length * 2) + i * (chartW / data.length);
-    const boxW = Math.min(chartW / (data.length * 2.6), 70);
+    const maxHalf = Math.min(chartW / (data.length * 2) * 0.92, 110);
 
     let grid = '';
     for (let t = 0; t <= niceMax; t += 5) {
@@ -921,34 +959,40 @@
 
     const rows = data.map((d, i) => {
       const cx = xCenter(i);
-      const st = quartileStats(d.vals);
-      if (!st) return '';
-      const yQ1 = scY(st.q1), yQ3 = scY(st.q3), yMed = scY(st.med), yMin = scY(st.min), yMax = scY(st.max);
-      const mean = d.vals.reduce((a, b) => a + b, 0) / d.vals.length;
-      const pts = d.vals.map((v, j) => {
-        const jitter = ((j % 5) - 2) * 4.6;
-        return `<circle cx="${cx + jitter}" cy="${scY(v)}" r="3.8" fill="${d.color}" fill-opacity="0.55"/>`;
-      }).join('');
+      const vals = d.vals;
+      const gmin = Math.min(...vals), gmax = Math.max(...vals);
+      const bw = Math.max(stdOf(vals) * 0.55, 0.5);
+      const gridN = 44;
+      const left = [], right = [];
+      for (let k = 0; k < gridN; k++) {
+        const v = gmin + (gmax - gmin) * k / (gridN - 1);
+        const dens = kdeAt(vals, v, bw);
+        const w = Math.min(dens * maxHalf * 2.4, maxHalf);
+        left.push([cx - w, scY(v)]);
+        right.push([cx + w, scY(v)]);
+      }
+      const polyPts = left.concat(right.reverse()).map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+      const pts = vals.map((v, j) =>
+        `<circle cx="${cx + ((j % 5) - 2) * 3.8}" cy="${scY(v)}" r="3.2" fill="${d.color}" fill-opacity="0.6"/>`).join('');
+      const m = meanOf(vals), sd = stdOf(vals);
       return `
-        <line x1="${cx}" y1="${yMin}" x2="${cx}" y2="${yMax}" stroke="${d.color}" stroke-width="1.8"/>
-        <line x1="${cx - boxW / 4}" y1="${yMin}" x2="${cx + boxW / 4}" y2="${yMin}" stroke="${d.color}" stroke-width="1.8"/>
-        <line x1="${cx - boxW / 4}" y1="${yMax}" x2="${cx + boxW / 4}" y2="${yMax}" stroke="${d.color}" stroke-width="1.8"/>
-        <rect x="${cx - boxW / 2}" y="${yQ3}" width="${boxW}" height="${Math.max(yQ1 - yQ3, 2)}" fill="${d.color}" fill-opacity="0.30" stroke="${d.color}" stroke-width="1.8" rx="2"/>
-        <line x1="${cx - boxW / 2}" y1="${yMed}" x2="${cx + boxW / 2}" y2="${yMed}" stroke="${S.text}" stroke-width="3"/>
+        <polygon points="${polyPts}" fill="${d.color}" fill-opacity="0.32" stroke="${d.color}" stroke-width="1.4"/>
         ${pts}
-        <path d="M${cx - 5} ${scY(mean)} L${cx} ${scY(mean) - 5} L${cx + 5} ${scY(mean)} L${cx} ${scY(mean) + 5} Z" fill="${S.text}"/>
+        <line x1="${cx}" y1="${scY(m - sd)}" x2="${cx}" y2="${scY(m + sd)}" stroke="${S.text}" stroke-width="2"/>
+        <line x1="${cx - 6}" y1="${scY(m - sd)}" x2="${cx + 6}" y2="${scY(m - sd)}" stroke="${S.text}" stroke-width="2"/>
+        <line x1="${cx - 6}" y1="${scY(m + sd)}" x2="${cx + 6}" y2="${scY(m + sd)}" stroke="${S.text}" stroke-width="2"/>
+        <circle cx="${cx}" cy="${scY(m)}" r="4.5" fill="${S.text}"/>
         ${chartText(cx, H - padB + 18, d.label, { anchor: 'middle', size: 12, weight: 600 })}
-        ${chartText(cx, yMed - 12, st.med.toFixed(1) + ' sn', { anchor: 'middle', size: 10, weight: 600, fill: d.color })}
-        ${chartText(cx, yMax - 4, 'n=' + st.n, { anchor: 'middle', size: 9, fill: S.muted })}
+        ${chartText(cx, scY(gmax) - 10, 'n=' + vals.length, { anchor: 'middle', size: 9, fill: S.muted })}
       `;
     }).join('');
 
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Tamamlama süresi dağılımı">
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Tamamlama süresi keman grafiği">
       <rect width="${W}" height="${H}" fill="${S.bg}"/>
       ${grid}
       <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="${S.axis}" stroke-width="1.2"/>
       ${rows}
-      ${chartText(W / 2, H - 8, 'Tamamlama süresi (sn) — zaman aşımı hariç · kutu Q1–Q3 · bıyık min–maks · ◆ ortalama', { anchor: 'middle', size: 9.5, fill: S.muted })}
+      ${chartText(W / 2, H - 8, 'Tamamlama süresi (sn) — zaman aşımı hariç · keman dağılım · nokta katılımcı · ◆ ortalama ± SS', { anchor: 'middle', size: 9.5, fill: S.muted })}
     </svg>`;
   }
 
@@ -957,13 +1001,100 @@
     const stats = computeStats();
     if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
     const S = CHART_STYLE;
-    const W = 480, H = 260, padL = 52, padR = 24, padT = 32, padB = 52;
-    const chartW = W - padL - padR, chartH = H - padT - padB;
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    const perPart = (cond, kind) => visible.map(p => {
+      const trs = (p[cond]?.trials || []);
+      if (!trs.length) return null;
+      const ok = kind === 'first'
+        ? trs.filter(t => t.firstAttemptSuccess || t.first_attempt_success).length
+        : trs.filter(t => t.outcome === 'solved').length;
+      return ok / trs.length * 100;
+    }).filter(v => v !== null);
     const metrics = [
-      { label: 'İlk deneme doğruluğu', txt: stats.txt.firstOkPct, img: stats.img.firstOkPct },
-      { label: 'Tamamlama oranı', txt: stats.txt.completionPct, img: stats.img.completionPct }
+      { label: 'İlk deneme doğruluğu', txt: perPart('condition_text', 'first'), img: perPart('condition_image', 'first') },
+      { label: 'Tamamlama oranı', txt: perPart('condition_text', 'solved'), img: perPart('condition_image', 'solved') }
     ];
-    const scY = pct => H - padB - (Math.min(100, Math.max(0, pct)) / 100) * chartH;
+    const W = 560, H = 320, padL = 52, padR = 24, padT = 36, padB = 56;
+    const chartW = W - padL - padR, chartH = H - padT - padB;
+    const scY = pct => H - padB - (Math.min(105, Math.max(0, pct)) / 105) * chartH;
+
+    let grid = '';
+    [0, 20, 40, 60, 80, 100].forEach(p => {
+      const y = scY(p);
+      grid += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="${S.grid}" stroke-width="1"/>` +
+        chartText(padL - 8, y + 4, p, { anchor: 'end', size: 10, fill: S.muted });
+    });
+
+    const groupW = chartW / metrics.length;
+    const barW = Math.min(groupW * 0.30, 52);
+    const bars = metrics.map((m, i) => {
+      const gx = padL + i * groupW + groupW / 2;
+      const pair = (x, vals, color) => {
+        if (!vals.length) return '';
+        const mval = meanOf(vals);
+        const ci = bootCI(vals);
+        const lo = ci[0], hi = ci[1];
+        const pts = vals.map((v, j) =>
+          `<circle cx="${x + ((j % 5) - 2) * 2.6}" cy="${scY(v)}" r="2.4" fill="${color}" fill-opacity="0.4"/>`).join('');
+        return `<rect x="${x - barW / 2}" y="${scY(mval)}" width="${barW}" height="${Math.max(H - padB - scY(mval), 1)}" fill="${color}" fill-opacity="0.9" rx="2"/>` +
+          `<line x1="${x}" y1="${scY(lo)}" x2="${x}" y2="${scY(hi)}" stroke="${S.text}" stroke-width="1.6"/>` +
+          `<line x1="${x - 6}" y1="${scY(lo)}" x2="${x + 6}" y2="${scY(lo)}" stroke="${S.text}" stroke-width="1.6"/>` +
+          `<line x1="${x - 6}" y1="${scY(hi)}" x2="${x + 6}" y2="${scY(hi)}" stroke="${S.text}" stroke-width="1.6"/>` +
+          pts +
+          chartText(x, scY(hi) - 6, Math.round(mval) + '%', { anchor: 'middle', size: 10, weight: 600, fill: color });
+      };
+      return chartText(gx, H - padB + 18, m.label, { anchor: 'middle', size: 11, weight: 600 }) +
+        pair(gx - barW / 2 - 4, m.txt, S.txt) +
+        pair(gx + barW / 2 + 4, m.img, S.img);
+    }).join('');
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Doğruluk ve tamamlama oranları">
+      <rect width="${W}" height="${H}" fill="${S.bg}"/>
+      ${grid}
+      <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="${S.axis}" stroke-width="1.2"/>
+      ${bars}
+      ${chartText(padL - 8, padT - 10, '%', { anchor: 'end', size: 10, weight: 600, fill: S.muted })}
+      <g transform="translate(${padL}, 10)">
+        <rect x="0" y="0" width="12" height="12" fill="${S.txt}" rx="2"/><text x="16" y="10" font-family="Roboto, Arial" font-size="10" fill="${S.text}">Bozulmuş Metin</text>
+        <rect x="128" y="0" width="12" height="12" fill="${S.img}" rx="2"/><text x="144" y="10" font-family="Roboto, Arial" font-size="10" fill="${S.text}">Görsel Seçimi</text>
+      </g>
+    </svg>`;
+  }
+
+  function renderComposition() {
+    const el = document.getElementById('chart-composition-container');
+    if (!el) return;
+    const stats = computeStats();
+    if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
+    const S = CHART_STYLE;
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    function comp(cond) {
+      let n = 0, s1 = 0, sr = 0, to = 0, fa = 0;
+      visible.forEach(p => {
+        (p[cond]?.trials || []).forEach(t => {
+          n++;
+          const first = t.firstAttemptSuccess || t.first_attempt_success;
+          if (t.outcome === 'solved' && first) s1++;
+          else if (t.outcome === 'solved') sr++;
+          else if (t.outcome === 'timeout') to++;
+          else if (t.outcome === 'abandoned' || t.outcome === 'failed_attempts') fa++;
+        });
+      });
+      return { n, vals: [s1, sr, to, fa] };
+    }
+    const ct = comp('condition_text'), ci = comp('condition_image');
+    if (ct.n + ci.n === 0) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
+    const cats = ['İlk denemede çözüldü', 'Tekrar ile çözüldü', 'Zaman aşımı', 'Başarısız/vazgeçme'];
+    const colors = [S.txt, '#89A8D8', '#B7C6E3', S.other];
+    const labels = ['Bozulmuş Metin', 'Görsel Seçimi'];
+    const totals = [ct.n, ci.n];
+    const vals = [ct.vals, ci.vals];
+
+    const W = 560, H = 320, padL = 56, padR = 26, padT = 30, padB = 92;
+    const chartW = W - padL - padR, chartH = H - padT - padB;
+    const scY = v => H - padB - (v / 100) * chartH;
+    const groupW = chartW / 2;
+    const barW = Math.min(groupW * 0.5, 90);
 
     let grid = '';
     [0, 25, 50, 75, 100].forEach(p => {
@@ -972,30 +1103,115 @@
         chartText(padL - 8, y + 4, p, { anchor: 'end', size: 10, fill: S.muted });
     });
 
-    const groupW = chartW / metrics.length;
-    const barW = Math.min(groupW * 0.34, 56);
-    const bars = metrics.map((m, i) => {
-      const gx = padL + i * groupW + groupW / 2;
-      const bar = (x, val, color) => {
-        const h = Math.max(H - padB - scY(val), val > 0 ? 1 : 0);
-        return `<rect x="${x - barW / 2}" y="${scY(val)}" width="${barW}" height="${h}" fill="${color}" fill-opacity="0.9" rx="2"/>` +
-          chartText(x, scY(val) - 5, '%' + val, { anchor: 'middle', size: 10, weight: 600, fill: color });
-      };
-      return chartText(gx, H - padB + 18, m.label, { anchor: 'middle', size: 11, weight: 600 }) +
-        bar(gx - barW / 2 - 2, m.txt, S.txt) +
-        bar(gx + barW / 2 + 2, m.img, S.img);
+    const bars = vals.map((v, i) => {
+      const cx = padL + i * groupW + groupW / 2;
+      const n = totals[i] || 1;
+      let bottom = 100;
+      let html = '';
+      v.forEach((count, j) => {
+        const pct = count / n * 100;
+        if (pct <= 0) return;
+        const yTop = scY(bottom);
+        const h = (pct / 100) * chartH;
+        html += `<rect x="${cx - barW / 2}" y="${yTop}" width="${barW}" height="${h}" fill="${colors[j]}" stroke="#FFFFFF" stroke-width="0.8"/>`;
+        if (pct > 5) {
+          html += chartText(cx, yTop + h / 2 + 4, Math.round(pct) + '%', { anchor: 'middle', size: 10, weight: 600, fill: (j === 2 || j === 3) ? '#202124' : '#FFFFFF' });
+        }
+        bottom -= pct;
+      });
+      return html + chartText(cx, H - padB + 20, labels[i], { anchor: 'middle', size: 12, weight: 600 }) +
+        chartText(cx, scY(100) - 8, 'n=' + n, { anchor: 'middle', size: 9, fill: S.muted });
     }).join('');
 
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Doğruluk ve tamamlama oranları">
+    const legend = cats.map((c, j) => {
+      const lx = padL + (j % 2) * 250;
+      const ly = H - padB + 46 + Math.floor(j / 2) * 22;
+      return `<rect x="${lx}" y="${ly - 9}" width="12" height="12" fill="${colors[j]}" rx="2"/>` +
+        `<text x="${lx + 18}" y="${ly}" font-family="Roboto, Arial" font-size="10" fill="${S.text}">${c}</text>`;
+    }).join('');
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Deneme sonuç kompozisyonu">
+      <rect width="${W}" height="${H}" fill="${S.bg}"/>
+      ${grid}
+      ${bars}
+      ${legend}
+    </svg>`;
+  }
+
+  function renderLikert() {
+    const el = document.getElementById('chart-likert-container');
+    if (!el) return;
+    const stats = computeStats();
+    if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
+    const S = CHART_STYLE;
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    const collect = (key, alt) => {
+      const t = [], i = [];
+      visible.forEach(p => {
+        const st = p.condition_text?.survey || {};
+        const si = p.condition_image?.survey || {};
+        const dt = st[key] != null ? st[key] : st[alt];
+        const di = si[key] != null ? si[key] : si[alt];
+        if (dt != null) t.push(Number(dt));
+        if (di != null) i.push(Number(di));
+      });
+      return { t, i };
+    };
+    const diff = collect('perceivedDifficulty', 'perceived_difficulty');
+    const sec = collect('perceivedSecurity', 'perceived_security');
+    if (!diff.t.length && !diff.i.length && !sec.t.length && !sec.i.length) {
+      el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return;
+    }
+    const panels = [
+      { title: 'Algılanan zorluk', data: diff },
+      { title: 'Algılanan güvenlik', data: sec }
+    ];
+    const W = 620, H = 340, padL = 40, padR = 24, padT = 34, padB = 48;
+    const chartW = W - padL - padR, chartH = H - padT - padB;
+    const scY = v => H - padB - ((v - 0.5) / 7) * chartH;
+    const panelW = chartW / 2;
+    const half = panelW / 2;
+    const boxW = Math.min(panelW / 4, 48);
+
+    let grid = '';
+    for (let v = 1; v <= 7; v++) {
+      const y = scY(v);
+      grid += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="${S.grid}" stroke-width="1"/>` +
+        chartText(padL - 8, y + 4, v, { anchor: 'end', size: 10, fill: S.muted });
+    }
+
+    let body = '';
+    panels.forEach((panel, pi) => {
+      const baseX = padL + pi * panelW;
+      body += chartText(baseX + half, padT - 10, panel.title, { anchor: 'middle', size: 11, weight: 600 });
+      const groups = [
+        { label: 'Bozulmuş Metin', color: S.txt, vals: panel.data.t },
+        { label: 'Görsel Seçimi', color: S.img, vals: panel.data.i }
+      ];
+      groups.forEach((g, gi) => {
+        if (!g.vals.length) return;
+        const cx = baseX + half / 2 + gi * half;
+        const st = quartileStats(g.vals);
+        const pts = g.vals.map((v, j) =>
+          `<circle cx="${cx + ((j % 5) - 2) * 4}" cy="${scY(v)}" r="3.4" fill="${g.color}" fill-opacity="0.55"/>`).join('');
+        body += `
+          <line x1="${cx}" y1="${scY(st.min)}" x2="${cx}" y2="${scY(st.max)}" stroke="${g.color}" stroke-width="1.6"/>
+          <line x1="${cx - boxW / 4}" y1="${scY(st.min)}" x2="${cx + boxW / 4}" y2="${scY(st.min)}" stroke="${g.color}" stroke-width="1.6"/>
+          <line x1="${cx - boxW / 4}" y1="${scY(st.max)}" x2="${cx + boxW / 4}" y2="${scY(st.max)}" stroke="${g.color}" stroke-width="1.6"/>
+          <rect x="${cx - boxW / 2}" y="${scY(st.q3)}" width="${boxW}" height="${Math.max(scY(st.q1) - scY(st.q3), 2)}" fill="${g.color}" fill-opacity="0.32" stroke="${g.color}" stroke-width="1.6" rx="2"/>
+          <line x1="${cx - boxW / 2}" y1="${scY(st.med)}" x2="${cx + boxW / 2}" y2="${scY(st.med)}" stroke="${S.text}" stroke-width="2.6"/>
+          ${pts}
+          <circle cx="${cx}" cy="${scY(meanOf(g.vals))}" r="4" fill="${S.text}"/>
+          ${chartText(cx, H - padB + 18, g.label, { anchor: 'middle', size: 10 })}
+        `;
+      });
+    });
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Algılanan zorluk ve güvenlik">
       <rect width="${W}" height="${H}" fill="${S.bg}"/>
       ${grid}
       <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="${S.axis}" stroke-width="1.2"/>
-      ${bars}
-      ${chartText(padL - 8, padT - 8, '%', { anchor: 'end', size: 10, weight: 600, fill: S.muted })}
-      <g transform="translate(${padL}, 8)">
-        <rect x="0" y="0" width="12" height="12" fill="${S.txt}" rx="2"/><text x="16" y="10" font-family="Roboto, Arial" font-size="10" fill="${S.text}">Bozulmuş Metin</text>
-        <rect x="128" y="0" width="12" height="12" fill="${S.img}" rx="2"/><text x="144" y="10" font-family="Roboto, Arial" font-size="10" fill="${S.text}">Görsel Seçimi</text>
-      </g>
+      ${body}
     </svg>`;
   }
 
