@@ -200,12 +200,12 @@ Ana deney açılmadan önce 3–5 kişilik bir pilot grup ile şu maddeler doğr
 
 ### Makale Figürleri (matplotlib + seaborn)
 `scripts/generate_charts.py`, `data/results.json` (veya panelden indirilen JSON) üzerinden 300 dpi makale figürleri üretir:
-- **Fig 1:** Eşleştirilmiş tamamlama süresi (kutu + nokta + katılımcı bağlantı çizgileri + grup ortalaması)
-- **Fig 2:** İlk deneme doğruluğu ve tamamlama oranı (katılımcı bazlı, ortalama ± %95 GA)
-- **Fig 3:** Yeniden deneme, zaman aşımı ve başarısız deneme sayıları
-- **Fig 4:** Algılanan zorluk ve algılanan güvenlik dağılımı (Likert 1–7)
-- **Fig 5:** Algılanan zorluk ile algılanan güvenlik ilişkisi (nokta + ortalama)
-- **Fig 6:** Katılımcı tercihleri (yığılmış oran)
+- **Fig 1:** Eşleştirilmiş tamamlama süresi (keman + nokta + katılımcı bağlantı çizgileri + ortalama ± SS + Wilcoxon)
+- **Fig 2:** İlk deneme doğruluğu ve tamamlama (dikey gruplu çubuk + %95 GA + bireysel nokta + Wilcoxon)
+- **Fig 3:** Deneme sonuç kompozisyonu (%100 yığılmış dikey çubuk)
+- **Fig 4:** Algılanan zorluk ve güvenlik (dikey kutu + nokta + Wilcoxon)
+- **Fig 5:** Algılanan zorluk × güvenlik (saçılım + kenar histogramları + ortalama)
+- **Fig 6:** Katılımcı tercihleri (dikey gruplu çubuk)
 - **Fig 7:** Özet istatistik tablosu
 
 Kullanım: `python scripts/generate_charts.py --input data/results.json --outdir figures`
