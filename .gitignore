@@ -17,5 +17,9 @@ desktop.ini
 # Bağımlılıklar (ileride gerekirse)
 node_modules/
 
+# Python
+__pycache__/
+*.pyc
+
 # Üretilen grafik çıktıları (script ile yeniden üretilebilir)
 figures/
