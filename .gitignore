@@ -1,0 +1,14 @@
+# İç / geliştirme dosyaları (depoya girmemeli)
+scratch_prompt.txt
+
+# Geçici test dosyaları
+_*.js
+_*.ps1
+
+# İşletim sistemi dosyaları
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Bağımlılıklar (ileride gerekirse)
+node_modules/

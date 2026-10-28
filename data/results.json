@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "title": "CAPTCHA Sistemlerinde Güvenlik ve Kullanılabilirlik Dengesi — Deney Veri Kümesi",
+    "dataset_type": "Gerçek Deney Verisi (henüz toplanmadı)",
+    "sample_size": 0,
+    "counterbalancing": "50/50 AB-BA (veri geldikçe güncellenir)",
+    "timeout_rule": "Zaman aşımına uğrayan denemeler tamamlama süresi hesaplamalarına DAHİL EDİLMEMİŞTİR.",
+    "config_version": "1.0.0",
+    "last_updated": "2026-10-28"
+  },
+  "participants": []
+}

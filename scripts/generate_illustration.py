@@ -1,0 +1,63 @@
+import os
+
+tiles_dir = r"c:\Users\vural\Desktop\Makaleler\insan bilgisayar etkileşimi\test\images\tiles"
+images_dir = r"c:\Users\vural\Desktop\Makaleler\insan bilgisayar etkileşimi\test\images"
+os.makedirs(tiles_dir, exist_ok=True)
+
+# 1. Bilgilendirme Sayfası İllüstrasyonu (illustration_balance.svg)
+# Konu: İnsan-Makine ayrımı, Turing testi, Güvenlik ve Kullanılabilirlik dengesi
+# Kısıtlar: Kesinlikle gradyan yok, saf beyaz/siyah yok, Kâğıt zemin (#FAF9F6), Mürekkep (#1F1E1B), Derin Teal (#0E6B5B)
+illustration_balance = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" width="720" height="360" role="img" aria-label="CAPTCHA Güvenlik ve Kullanılabilirlik Dengesi">
+  <rect width="720" height="360" fill="#F4F1EA" rx="12"/>
+  <rect x="16" y="16" width="688" height="328" fill="#FAF9F6" stroke="#D8D2C5" stroke-width="2" rx="8"/>
+  
+  <!-- Zemin çizgisi -->
+  <line x1="120" y1="280" x2="600" y2="280" stroke="#D8D2C5" stroke-width="2" stroke-dasharray="6 6"/>
+  
+  <!-- Terazi Tabanı ve Kaidesi -->
+  <polygon points="360,130 330,270 390,270" fill="#E8E3D7" stroke="#1F1E1B" stroke-width="2.5"/>
+  <rect x="310" y="270" width="100" height="12" fill="#1F1E1B" rx="2"/>
+  <circle cx="360" cy="130" r="9" fill="#0E6B5B" stroke="#1F1E1B" stroke-width="2.5"/>
+  
+  <!-- Terazi Kolu (Denge Konumu) -->
+  <line x1="200" y1="130" x2="520" y2="130" stroke="#1F1E1B" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Sol Kefe: GÜVENLİK (Kilit & Bot Savunması) -->
+  <line x1="200" y1="130" x2="160" y2="210" stroke="#57534E" stroke-width="1.5"/>
+  <line x1="200" y1="130" x2="240" y2="210" stroke="#57534E" stroke-width="1.5"/>
+  <path d="M140,210 Q200,225 260,210 Z" fill="#E8E3D7" stroke="#1F1E1B" stroke-width="2"/>
+  
+  <!-- Kilit İkonu (Güvenlik / Direnç) -->
+  <g transform="translate(180, 155)">
+    <rect x="6" y="18" width="28" height="24" rx="3" fill="#0E6B5B" stroke="#1F1E1B" stroke-width="2"/>
+    <path d="M12,18 V11 A8,8 0 0,1 28,11 V18" fill="none" stroke="#1F1E1B" stroke-width="2.5"/>
+    <circle cx="20" cy="28" r="2.5" fill="#FAF9F6"/>
+    <line x1="20" y1="30" x2="20" y2="35" stroke="#FAF9F6" stroke-width="2"/>
+  </g>
+  <text x="200" y="245" font-family="serif" font-size="14" font-weight="600" fill="#1F1E1B" text-anchor="middle">GÜVENLİK</text>
+  <text x="200" y="262" font-family="sans-serif" font-size="11" fill="#57534E" text-anchor="middle">Bot &amp; Otomasyon Direnci</text>
+
+  <!-- Sağ Kefe: KULLANILABİLİRLİK (İnsan Etkileşimi & Hız) -->
+  <line x1="520" y1="130" x2="480" y2="210" stroke="#57534E" stroke-width="1.5"/>
+  <line x1="520" y1="130" x2="560" y2="210" stroke="#57534E" stroke-width="1.5"/>
+  <path d="M460,210 Q520,225 580,210 Z" fill="#E8E3D7" stroke="#1F1E1B" stroke-width="2"/>
+  
+  <!-- İnsan / Süre İkonu (Kullanılabilirlik) -->
+  <g transform="translate(500, 152)">
+    <circle cx="20" cy="14" r="10" fill="#E8E3D7" stroke="#1F1E1B" stroke-width="2"/>
+    <path d="M6,40 C6,27 12,25 20,25 C28,25 34,27 34,40 Z" fill="#0E6B5B" stroke="#1F1E1B" stroke-width="2"/>
+    <circle cx="20" cy="14" r="3" fill="#1F1E1B"/>
+  </g>
+  <text x="520" y="245" font-family="serif" font-size="14" font-weight="600" fill="#1F1E1B" text-anchor="middle">KULLANILABİLİRLİK</text>
+  <text x="520" y="262" font-family="sans-serif" font-size="11" fill="#57534E" text-anchor="middle">Süre, Başarı &amp; Bilişsel Çaba</text>
+
+  <!-- Merkez Rozeti: Turing Testi / HCI Araştırması -->
+  <rect x="290" y="42" width="140" height="28" rx="4" fill="#FAF9F6" stroke="#0E6B5B" stroke-width="1.5"/>
+  <text x="360" y="61" font-family="sans-serif" font-size="12" font-weight="600" fill="#0E6B5B" text-anchor="middle" letter-spacing="1">HCI DENEY BAĞLAMI</text>
+  <text x="360" y="96" font-family="serif" font-size="16" font-style="italic" fill="#57534E" text-anchor="middle">"Security–Usability Trade-Off"</text>
+</svg>'''
+
+with open(os.path.join(images_dir, "illustration_balance.svg"), "w", encoding="utf-8") as f:
+    f.write(illustration_balance)
+
+print("Created illustration_balance.svg")

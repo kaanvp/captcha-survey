@@ -1,0 +1,1295 @@
+/* ==========================================================================
+   HCI CAPTCHA DENEY ARACI - DESIGN SYSTEM & STYLESHEET
+   Kısıtlar:
+   - Kesinlikle gradyan yok (NO linear-gradient, NO radial-gradient)
+   - Saf beyaz (#FFFFFF) ve saf siyah (#000000) yok
+   - Kâğıt zemin: #FAF9F6, Mürekkep: #1F1E1B, Tek Vurgu: Derin Teal #0E6B5B
+   - Tipografi: Başlık Serif, Gövde Sans-Serif 17-18px, Satır yüksekliği 1.6
+   - Okuma sütunu: 65-75ch
+   - Net focus halkaları, AA kontrast, dokunma hedefleri >= 44px
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+  /* Google tarzı temiz, nötr palet (yormayan) */
+  --color-paper: #F8F9FA;        /* sayfa zemini */
+  --color-paper-alt: #FFFFFF;    /* kart / yüzey */
+  --color-paper-surface: #F1F3F4;
+  --color-ink: #202124;
+  --color-ink-muted: #5F6368;
+  --color-ink-faint: #80868B;
+  --color-border: #DADCE0;
+  --color-border-strong: #BDC1C6;
+
+  /* Vurgu rengi: Google mavisi */
+  --color-teal: #1A73E8;
+  --color-teal-hover: #1765CC;
+  --color-teal-tint: #E8F0FE;
+  --color-teal-border: #AECBFA;
+
+  /* Durum renkleri */
+  --color-success: #1E8E3E;
+  --color-success-bg: #E6F4EA;
+  --color-warning: #B06000;
+  --color-warning-bg: #FEF7E0;
+  --color-danger: #C5221F;
+  --color-danger-bg: #FCE8E6;
+
+  /* Tipografi */
+  --font-serif: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+
+  --font-size-base: 17px;
+  --line-height-base: 1.6;
+  --max-content-width: 72ch;
+  --container-max-width: 1040px;
+
+  /* Boşluklar */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* Kenarlık ve Yarıçap */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Reset & Temel Kurallar
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--font-size-base);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: var(--line-height-base);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  overflow-x: hidden;
+}
+
+/* Erişilebilir Focus Halkaları */
+:focus-visible {
+  outline: 3px solid var(--color-teal);
+  outline-offset: 3px;
+}
+
+/* Tipografi */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--color-ink);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 2.15rem;
+  margin-bottom: var(--space-md);
+}
+
+h2 {
+  font-size: 1.65rem;
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-xs);
+}
+
+h3 {
+  font-size: 1.3rem;
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-xs);
+}
+
+p, li, blockquote {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  margin-bottom: 1.15rem;
+}
+
+p.lead {
+  font-size: 1.15rem;
+  color: var(--color-ink);
+  line-height: 1.55;
+  margin-bottom: var(--space-lg);
+}
+
+.text-muted {
+  color: var(--color-ink-muted);
+  font-size: 0.95rem;
+}
+
+.text-small {
+  font-size: 0.88rem;
+  color: var(--color-ink-muted);
+}
+
+/* Bağlantılar */
+a {
+  color: var(--color-teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--color-teal-hover);
+  text-decoration-thickness: 2px;
+}
+
+/* Düzen Elemanları */
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-lg);
+  padding-right: var(--space-lg);
+}
+
+.reading-column {
+  max-width: var(--max-content-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Header / Kurumsal Üst Çubuk
+   -------------------------------------------------------------------------- */
+.site-header {
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-paper-alt);
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-md);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.header-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-course-tag {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-teal);
+  margin-bottom: 2px;
+}
+
+.header-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.header-link {
+  font-size: 0.92rem;
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-paper);
+}
+
+.header-link:hover {
+  color: var(--color-ink);
+  border-color: var(--color-ink-muted);
+}
+
+.btn-withdraw {
+  font-size: 0.88rem;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+  background-color: var(--color-paper);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+
+.btn-withdraw:hover {
+  background-color: var(--color-danger-bg);
+}
+
+/* --------------------------------------------------------------------------
+   Aşama İlerleme Çubuğu (Experiment Progress)
+   -------------------------------------------------------------------------- */
+.progress-bar-wrapper {
+  background-color: var(--color-paper);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-sm) 0;
+}
+
+.progress-steps-list {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  list-style: none;
+  position: relative;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.progress-step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+  min-width: 80px;
+  position: relative;
+}
+
+.progress-step-item::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-border);
+  z-index: 1;
+}
+
+.progress-step-item:last-child::after {
+  display: none;
+}
+
+.step-indicator-bubble {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-paper-alt);
+  border: 2px solid var(--color-border);
+  color: var(--color-ink-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 2;
+  margin-bottom: 4px;
+}
+
+.progress-step-item.active .step-indicator-bubble {
+  background-color: var(--color-teal);
+  border-color: var(--color-teal);
+  color: var(--color-paper);
+}
+
+.progress-step-item.completed .step-indicator-bubble {
+  background-color: var(--color-teal-tint);
+  border-color: var(--color-teal);
+  color: var(--color-teal);
+}
+
+.progress-step-item.completed::after {
+  background-color: var(--color-teal);
+}
+
+.step-label-text {
+  font-size: 0.76rem;
+  color: var(--color-ink-muted);
+  font-weight: 500;
+}
+
+.progress-step-item.active .step-label-text {
+  color: var(--color-teal);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Ana İçerik Bölgesi
+   -------------------------------------------------------------------------- */
+.main-content {
+  flex: 1;
+  padding-top: var(--space-xl);
+  padding-bottom: var(--space-2xl);
+}
+
+.step-panel {
+  display: none;
+}
+
+.step-panel.active {
+  display: block;
+}
+
+/* Kart / Bilgi Kutusu Bileşenleri */
+.card-box {
+  background-color: var(--color-paper-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.card-box-accent {
+  background-color: var(--color-teal-tint);
+  border: 1px solid var(--color-teal-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+/* Üç Temel Kavram Ayrımı Kutuları */
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.concept-card {
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-teal);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+}
+
+.concept-card.warning-border {
+  border-top-color: var(--color-warning);
+}
+
+.concept-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  margin-bottom: var(--space-xs);
+  color: var(--color-ink);
+}
+
+.concept-card-text {
+  font-size: 0.92rem;
+  color: var(--color-ink-muted);
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+/* Butonlar */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.75rem 1.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  min-height: 44px;
+  line-height: 1.2;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-primary {
+  background-color: var(--color-teal);
+  color: var(--color-paper);
+  border-color: var(--color-teal);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-teal-hover);
+  border-color: var(--color-teal-hover);
+  color: var(--color-paper);
+}
+
+.btn-secondary {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  border-color: var(--color-border-strong);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-paper-alt);
+  border-color: var(--color-ink);
+}
+
+.btn-sm {
+  font-size: 0.88rem;
+  padding: 0.45rem 0.85rem;
+  min-height: 36px;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.button-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Form Elemanları */
+.form-group {
+  margin-bottom: var(--space-lg);
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: var(--color-ink);
+  margin-bottom: var(--space-xs);
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-xs);
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--color-ink);
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  min-height: 44px;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--color-teal);
+}
+
+/* Otomatik katılımcı kodu (değiştirilemez, salt okunur) */
+.participant-code-display {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--color-teal);
+  background-color: var(--color-teal-tint);
+  border: 1px solid var(--color-teal-border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1rem;
+  user-select: all;
+  cursor: default;
+}
+
+/* Checkbox & Radio */
+.checkbox-label, .radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  cursor: pointer;
+  font-size: 0.96rem;
+  margin-bottom: var(--space-sm);
+}
+
+.checkbox-input, .radio-input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-teal);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Doğal Kayıt Formu Demosu (Realistic Context)
+   -------------------------------------------------------------------------- */
+.demo-registration-box {
+  background-color: var(--color-paper-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.demo-disclaimer-badge {
+  display: inline-block;
+  background-color: var(--color-teal-tint);
+  border: 1px solid var(--color-teal-border);
+  color: var(--color-teal);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-md);
+}
+
+.demo-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+/* --------------------------------------------------------------------------
+   CAPTCHA Konteynerleri ve Uyaran Arayüzü
+   -------------------------------------------------------------------------- */
+.captcha-container {
+  background-color: var(--color-paper);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.captcha-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.captcha-instruction {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--color-ink);
+}
+
+.captcha-meta-badge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  background-color: var(--color-paper-alt);
+  border: 1px solid var(--color-border);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.captcha-feedback-msg {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  font-weight: 500;
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  display: none;
+}
+
+.captcha-feedback-msg.error {
+  display: block;
+  background-color: var(--color-danger-bg);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
+}
+
+.captcha-feedback-msg.success {
+  display: block;
+  background-color: var(--color-success-bg);
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
+}
+
+/* A) Bozulmuş Metin CAPTCHA Bileşenleri */
+.text-captcha-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.canvas-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#captcha-canvas {
+  background-color: #EDE8DE;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.btn-refresh-captcha {
+  background-color: var(--color-paper-alt);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-ink);
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.86rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-refresh-captcha:hover {
+  background-color: var(--color-paper-surface);
+}
+
+.text-captcha-input-row {
+  display: flex;
+  gap: var(--space-sm);
+  width: 100%;
+  max-width: 360px;
+}
+
+.input-captcha-text {
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  letter-spacing: 0.25em;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* B) Görsel Seçimi CAPTCHA — Google reCAPTCHA tarzı challenge */
+.image-captcha-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.recaptcha-panel {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.recaptcha-card {
+  width: 100%;
+  max-width: 440px;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.recaptcha-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #1A73E8;
+  color: #FFFFFF;
+  padding: 16px 18px;
+}
+
+.recaptcha-head-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.recaptcha-head-label {
+  font-size: 0.95rem;
+  color: #E8F0FE;
+  line-height: 1.3;
+}
+
+.recaptcha-head-target {
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 2px 0 4px;
+  color: #FFFFFF;
+  word-break: break-word;
+}
+
+.recaptcha-head-sub {
+  font-size: 0.82rem;
+  color: #E8F0FE;
+}
+
+.recaptcha-head-example {
+  flex-shrink: 0;
+  width: 84px;
+  height: 84px;
+  border: 2px solid #FFFFFF;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #FFFFFF;
+  align-self: center;
+}
+
+.recaptcha-head-example img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.recaptcha-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: #FFFFFF;
+}
+
+.recaptcha-grid .tile-btn {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background-color: var(--color-paper-surface);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: block;
+}
+
+.recaptcha-grid .tile-btn img,
+.recaptcha-grid .tile-btn svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.recaptcha-grid .tile-btn:focus-visible {
+  outline: 3px solid #1A73E8;
+  outline-offset: -3px;
+}
+
+.recaptcha-grid .tile-btn.selected img {
+  opacity: 0.55;
+}
+
+.recaptcha-grid .tile-btn.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 26px;
+  height: 26px;
+  background-color: #1A73E8;
+  color: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.recaptcha-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border-top: 1px solid #E8EAED;
+}
+
+.recaptcha-foot-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rc-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #5F6368;
+  cursor: pointer;
+  padding: 0;
+}
+
+.rc-icon-btn:hover {
+  background: #F1F3F4;
+  color: #1A73E8;
+}
+
+.rc-verify {
+  min-height: 44px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 4px;
+  background: #1A73E8;
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.rc-verify:hover {
+  background: #1765CC;
+}
+
+.rc-verify:disabled {
+  background: #BDC1C6;
+  cursor: default;
+}
+
+.captcha-feedback-msg.info {
+  display: block;
+  background-color: #E8F0FE;
+  border: 1px solid #AECBFA;
+  color: #1765CC;
+}
+
+/* --------------------------------------------------------------------------
+   Likert Ölçeği ve Anket Bileşenleri (1-7 Likert)
+   -------------------------------------------------------------------------- */
+.likert-group {
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.likert-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: 4px;
+}
+
+.likert-explainer {
+  font-size: 0.88rem;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-md);
+}
+
+.likert-scale {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  flex-wrap: nowrap;
+}
+
+.likert-option {
+  flex: 1;
+  text-align: center;
+}
+
+.likert-btn {
+  width: 100%;
+  min-height: 44px;
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.likert-btn:hover {
+  background-color: var(--color-paper-surface);
+  border-color: var(--color-teal);
+}
+
+.likert-btn.selected {
+  background-color: var(--color-teal);
+  color: var(--color-paper);
+  border-color: var(--color-teal);
+}
+
+.likert-endpoints {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+  margin-top: 4px;
+}
+
+/* Tercih Seçim Butonları */
+.preference-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.pref-radio-card {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-paper);
+  padding: var(--space-md);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.pref-radio-card:hover {
+  border-color: var(--color-teal);
+}
+
+.pref-radio-card input[type="radio"]:checked + .pref-card-body {
+  font-weight: 600;
+  color: var(--color-teal);
+}
+
+.pref-radio-card.selected {
+  border-color: var(--color-teal);
+  border-width: 2px;
+  background-color: var(--color-teal-tint);
+}
+
+/* --------------------------------------------------------------------------
+   Tamamlama & Sonuç Ekranı
+   -------------------------------------------------------------------------- */
+.completion-badge {
+  display: inline-block;
+  background-color: var(--color-success-bg);
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.1em;
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.fallback-box {
+  background-color: var(--color-paper-alt);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.json-textarea-readonly {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  width: 100%;
+  height: 140px;
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-border);
+  color: var(--color-ink);
+  padding: var(--space-sm);
+  resize: vertical;
+}
+
+/* --------------------------------------------------------------------------
+   Ayrılma (Withdrawal) Modalı
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(31, 30, 27, 0.6);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-window {
+  background-color: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-md);
+  max-width: 520px;
+  width: 100%;
+  padding: var(--space-xl);
+}
+
+/* --------------------------------------------------------------------------
+   Sonuçlar Sayfası (sonuclar.html) Bileşenleri
+   -------------------------------------------------------------------------- */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.metric-card {
+  background-color: var(--color-paper-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+}
+
+.metric-caption {
+  font-size: 0.84rem;
+  color: var(--color-ink-muted);
+  margin-bottom: 4px;
+}
+
+.metric-value-huge {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--color-teal);
+  line-height: 1.1;
+}
+
+.metric-subtext {
+  font-size: 0.84rem;
+  color: var(--color-ink-muted);
+  margin-top: 4px;
+}
+
+/* SVG Grafik Kapsayıcıları */
+.chart-container-box {
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.chart-header {
+  margin-bottom: var(--space-md);
+}
+
+.svg-chart-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.svg-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Veri Tablosu */
+.data-table-wrapper {
+  overflow-x: auto;
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-xl);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.data-table th, .data-table td {
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table th {
+  background-color: var(--color-paper-alt);
+  font-weight: 600;
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-size: 0.96rem;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Kaynakça Listesi (11 Kaynak) */
+.references-list {
+  list-style: decimal;
+  padding-left: 1.4rem;
+  margin-top: var(--space-md);
+}
+
+.references-list li {
+  margin-bottom: var(--space-sm);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+}
+
+/* Footer */
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-paper-alt);
+  padding: var(--space-xl) 0;
+  margin-top: auto;
+  font-size: 0.88rem;
+  color: var(--color-ink-muted);
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+/* --------------------------------------------------------------------------
+   Araştırmacı Paneli Bileşenleri (sonuclar.html)
+   -------------------------------------------------------------------------- */
+.chart-container-box {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-paper-alt);
+  padding: var(--space-lg);
+  overflow: hidden;
+}
+
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.metric-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-paper-alt);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.metric-caption {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-xs);
+}
+
+.metric-value-huge {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-teal);
+  line-height: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Erişilebilirlik ve Responsive İyileştirmeler
+   -------------------------------------------------------------------------- */
+@media (max-width: 680px) {
+  :root {
+    --font-size-base: 16px;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1.4rem;
+  }
+
+  .grid-3x3 {
+    max-width: 320px;
+    gap: 6px;
+  }
+
+  .button-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .likert-scale {
+    gap: 2px;
+  }
+
+  .likert-btn {
+    min-height: 40px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

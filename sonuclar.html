@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Araştırmacı Paneli — CAPTCHA HCI Deney Sonuçları</title>
+  <meta name="description" content="Araştırmacı veri paneli: katılımcı kayıtları, istatistik grafikleri, silme ve CSV dışa aktarma.">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Researcher panel extras */
+    .researcher-banner {
+      background-color: #1F1E1B;
+      color: #FAF9F6;
+      padding: 0.65rem 0;
+      font-size: 0.85rem;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+    .researcher-banner strong { color: #A3C7C0; }
+
+    .tab-bar {
+      display: flex;
+      gap: 2px;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: var(--space-xl);
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 0.6rem 1.1rem;
+      font-family: var(--font-sans);
+      font-size: 0.92rem;
+      font-weight: 500;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      color: var(--color-ink-muted);
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      border-bottom-color: var(--color-teal);
+      color: var(--color-teal);
+      font-weight: 600;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Raw Data Table extras */
+    .raw-table-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--space-lg);
+    }
+    .raw-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .raw-table th {
+      background-color: #1F1E1B;
+      color: #FAF9F6;
+      padding: 0.55rem 0.8rem;
+      font-weight: 600;
+      text-align: left;
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+    }
+    .raw-table td {
+      padding: 0.5rem 0.8rem;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: middle;
+    }
+    .raw-table tr:nth-child(even) td { background-color: var(--color-paper-alt); }
+    .raw-table tr:hover td { background-color: var(--color-teal-tint); }
+
+    .btn-delete-row {
+      background: none;
+      border: 1px solid var(--color-danger);
+      color: var(--color-danger);
+      border-radius: var(--radius-sm);
+      padding: 0.2rem 0.5rem;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .btn-delete-row:hover { background-color: var(--color-danger-bg); }
+
+    .btn-detail-row {
+      background: none;
+      border: 1px solid var(--color-teal);
+      color: var(--color-teal);
+      border-radius: var(--radius-sm);
+      padding: 0.2rem 0.5rem;
+      font-size: 0.78rem;
+      cursor: pointer;
+      margin-right: 0.3rem;
+    }
+    .btn-detail-row:hover { background-color: var(--color-teal-tint); }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-md);
+      margin: var(--space-md) 0;
+    }
+    .detail-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background-color: var(--color-paper);
+      padding: var(--space-md);
+    }
+    .detail-card h4 {
+      margin: 0 0 var(--space-xs) 0;
+      font-size: 1rem;
+      color: var(--color-teal);
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding: 0.25rem 0;
+      border-bottom: 1px dashed var(--color-border);
+      font-size: 0.9rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .k { color: var(--color-ink-muted); }
+    .detail-row .v { font-weight: 600; text-align: right; }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+      margin-bottom: var(--space-md);
+    }
+    .badge-count {
+      background-color: var(--color-teal);
+      color: var(--color-paper);
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .empty-state {
+      text-align: center;
+      padding: var(--space-2xl);
+      color: var(--color-ink-muted);
+    }
+
+    /* Grafik alanı */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Yetkisiz erişim bildirimi (giriş formu DEĞİL) -->
+  <div id="access-denied" style="display:none; min-height:100vh; align-items:center; justify-content:center; text-align:center; padding:24px;">
+    <div>
+      <h1 style="margin:0 0 8px;">Erişim Yok</h1>
+      <p style="margin:0; color:var(--color-ink-muted);">Bu sayfaya erişim yetkiniz bulunmuyor.</p>
+    </div>
+  </div>
+
+  <div class="researcher-banner">
+    <strong>ARAŞTIRMACI PANELİ</strong> — Bu sayfa katılımcılara gösterilmez. Toplanan deney verisini görüntüleyin, silin ve CSV olarak indirin.
+  </div>
+
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+      <div class="header-brand">
+        <span class="header-course-tag">İnsan-Bilgisayar Etkileşimi Dersi Projesi</span>
+        <a href="sonuclar.html" class="header-title">Araştırmacı Veri Paneli</a>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="header-link">← Deney Aracına Dön</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content" role="main">
+    <div class="container" style="max-width: 1200px;">
+
+      <h1 style="margin-bottom: var(--space-xs);">Deney Sonuçları</h1>
+      <p class="text-muted" style="margin-bottom: var(--space-xl);">
+        Veriler <code>data/results.json</code> ile bu tarayıcıda tamamlanan deneylerin yerel kayıtlarından (localStorage) okunmaktadır.
+        Netlify'da gerçek toplamada Netlify Forms panosundan CSV indirin.
+      </p>
+
+      <!-- Sekme Çubuğu -->
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab-data">Ham Veri</button>
+        <button class="tab-btn" role="tab" data-tab="tab-charts">Grafikler</button>
+        <button class="tab-btn" role="tab" data-tab="tab-summary">Özet İstatistik</button>
+      </div>
+
+      <!-- ===================================================================
+           SEKME 1: HAM VERİ
+           =================================================================== -->
+      <div class="tab-panel active" id="tab-data">
+
+        <div class="toolbar-row">
+          <span id="participant-count-badge" class="badge-count">0 katılımcı</span>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-download-csv">⬇ CSV İndir (Tüm Veri)</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-download-raw">⬇ JSON İndir</button>
+          <button type="button" class="btn btn-sm" id="btn-clear-all" style="border:1px solid var(--color-danger); color:var(--color-danger); background:none;">🗑 Tüm Test Verisini Temizle</button>
+        </div>
+
+        <p class="text-small text-muted" id="data-source-note" style="margin-bottom: var(--space-md);">
+          Yükleniyor...
+        </p>
+
+        <!-- Katılımcı Tablosu -->
+        <div class="raw-table-wrapper">
+          <table class="raw-table" id="participants-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Kod</th>
+                <th>Sıra</th>
+                <th>Cihaz</th>
+                <th>Yaş</th>
+                <th>Metin: İlk Deneme Doğru?</th>
+                <th>Metin: Ort. Süre (sn)</th>
+                <th>Metin: Zorluk (1-7)</th>
+                <th>Metin: Alg. Güvenlik (1-7)</th>
+                <th>Görsel: İlk Deneme Doğru?</th>
+                <th>Görsel: Ort. Süre (sn)</th>
+                <th>Görsel: Zorluk (1-7)</th>
+                <th>Görsel: Alg. Güvenlik (1-7)</th>
+                <th>Pref: Kolay</th>
+                <th>Pref: Hızlı</th>
+                <th>Pref: Güvenli</th>
+                <th>Neden</th>
+                <th>Tarih</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="participants-tbody">
+              <tr><td colspan="19" class="empty-state">Veriler yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Deneme Düzeyinde Detay -->
+        <h2>Deneme Düzeyi Log</h2>
+        <p class="text-small text-muted">Her denemenin t₀, ilk etkileşim süresi, toplam süre ve sonucu:</p>
+        <div class="raw-table-wrapper">
+          <table class="raw-table" id="trials-table">
+            <thead>
+              <tr>
+                <th>Katılımcı</th>
+                <th>Koşul</th>
+                <th>Sıra (AB/BA)</th>
+                <th>Deneme #</th>
+                <th>Uyaran ID</th>
+                <th>t₀ (ms)</th>
+                <th>İlk Etkileşim (sn)</th>
+                <th>Toplam Süre (sn)</th>
+                <th>Deneme Sayısı</th>
+                <th>Sonuç</th>
+                <th>İlk Denemede Başarı?</th>
+              </tr>
+            </thead>
+            <tbody id="trials-tbody">
+              <tr><td colspan="11" class="empty-state">Veriler yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           SEKME 2: GRAFİKLER
+           =================================================================== -->
+      <div class="tab-panel" id="tab-charts">
+
+        <div class="chart-grid">
+          <div class="chart-container-box">
+            <h3 style="margin-top:0;">Tamamlanma Süresi Dağılımı (Medyan ± IQR)</h3>
+            <p class="text-small text-muted">Zaman aşımına uğrayan denemeler dahil değil.</p>
+            <div id="chart-boxplot-container"></div>
+          </div>
+
+          <div class="chart-container-box">
+            <h3 style="margin-top:0;">İlk Denemede Doğruluk Oranı</h3>
+            <div id="chart-accuracy-container"></div>
+          </div>
+
+          <div class="chart-container-box">
+            <h3 style="margin-top:0;">Algılanan Zorluk vs. Algılanan Güvenlik</h3>
+            <p class="text-small text-muted">Her iki metrik ortalama değerler üzerinden çizilmiştir.</p>
+            <div id="chart-perception-container"></div>
+          </div>
+
+          <div class="chart-container-box">
+            <h3 style="margin-top:0;">Kullanıcı Tercihleri</h3>
+            <div id="chart-preferences-container"></div>
+          </div>
+        </div>
+
+        <div class="card-box" style="border-color: var(--color-warning);">
+          <p style="margin-bottom:0;" class="text-small">
+            <strong>Not:</strong> Grafikler <code>data/results.json</code> içindeki mevcut verilerden otomatik hesaplanmaktadır. 
+            Eğer veri kümesi küçükse (N &lt; 5), istatistiksel değerler referans niteliği taşımaz.
+          </p>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           SEKME 3: ÖZET İSTATİSTİK
+           =================================================================== -->
+      <div class="tab-panel" id="tab-summary">
+
+        <div class="metrics-row" id="kpi-row">
+          <!-- Dinamik -->
+        </div>
+
+        <h2>Özet Metrik Tablosu</h2>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ölçüm</th>
+                <th>Bozulmuş Metin</th>
+                <th>Görsel Seçimi</th>
+                <th>Not</th>
+              </tr>
+            </thead>
+            <tbody id="summary-table-body">
+              <tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--color-ink-muted);">Hesaplanıyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Açık Uçlu Yanıtlar</h2>
+        <div id="qualitative-quotes-list"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-inner">
+      <p style="margin-bottom:0; font-size:0.85rem;">
+        <a href="index.html">← Deney Aracı</a> &nbsp;|&nbsp; 
+        Araştırmacı Paneli &copy; 2026
+      </p>
+    </div>
+  </footer>
+
+  <!-- Katılımcı Anket Detayı Modalı -->
+  <div class="modal-overlay" id="participant-detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title">
+    <div class="modal-window" style="max-width:760px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:var(--space-md);">
+        <h2 id="detail-modal-title" style="margin-top:0;">Katılımcı Anket Detayı</h2>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-detail-close" aria-label="Kapat">✕ Kapat</button>
+      </div>
+      <div id="participant-detail-content"></div>
+    </div>
+  </div>
+
+  <script>
+  /* =========================================================================
+     Araştırmacı Paneli — Veri Yöneticisi ve Görselleştirici
+     =========================================================================
+     Veri kaynağı: data/results.json
+     Silme işlemleri tarayıcı localStorage'ında saklanır (sayfa yenilense de korunur)
+     ve CSV/JSON dışa aktarımlarına yansır. data/results.json dosyası statik sitede
+     değiştirilemez. Netlify Forms'ta gerçek veri Netlify panosundan CSV olarak alınır.
+     ========================================================================= */
+
+  let allData = null;       // Tam JSON kopyası
+  let participants = [];    // Çalışma sırasında düzenlenebilir kopya
+  let deletedIds = new Set();
+
+  // -------------------------------------------------------------------------
+  // Erişim kontrolü — giriş ekranı YOK.
+  // Sonuçlar yalnızca doğru bağlantıyla (?key=kaan1234) görünür;
+  // aksi halde yalnızca "Erişim Yok" mesajı gösterilir.
+  // -------------------------------------------------------------------------
+  const ACCESS_PASSWORD = 'kaan1234';
+  const ACCESS_PARAM = 'key';
+
+  let authorized = false;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    authorized = params.get(ACCESS_PARAM) === ACCESS_PASSWORD;
+  } catch (e) { authorized = false; }
+
+  if (!authorized) {
+    document.querySelectorAll('.site-header, .researcher-banner, main, .site-footer, #participant-detail-modal')
+      .forEach(el => { el.style.display = 'none'; });
+    const denied = document.getElementById('access-denied');
+    if (denied) denied.style.display = 'flex';
+    throw new Error('Erişim yetkisi yok');
+  }
+
+  // -------------------------------------------------------------------------
+  // Tab yönetimi
+  // -------------------------------------------------------------------------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Veri Yükleme
+  // -------------------------------------------------------------------------
+  async function loadData() {
+    try {
+      const res = await fetch('data/results.json');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      allData = await res.json();
+    } catch (e) {
+      console.warn('results.json yüklenemedi, gömülü fallback kullanılıyor.', e);
+      allData = getFallbackData();
+    }
+    participants = JSON.parse(JSON.stringify(allData.participants || []));
+    // Tarayıcıda tamamlanan deneylerin yerel kayıtlarını da ekle (veri eklenmiyor sorunu)
+    try {
+      const localSubs = JSON.parse(localStorage.getItem('captcha_submissions') || '[]');
+      const existingKeys = new Set(participants.map(p => `${p.participant_code}|${p.timestamp}`));
+      localSubs.forEach(sub => {
+        if (!sub) return;
+        const key = `${sub.participant_code}|${sub.timestamp}`;
+        if (!existingKeys.has(key)) {
+          participants.push(sub);
+          existingKeys.add(key);
+        }
+      });
+    } catch (e) { /* yerel kayıt yoksa yok say */ }
+    // Silinen kayıtları tarayıcı depolamasından geri yükle (sayfa yenillense de silme korunur)
+    try {
+      const saved = JSON.parse(localStorage.getItem('captcha_deleted_ids') || '[]');
+      if (Array.isArray(saved)) saved.forEach(id => deletedIds.add(id));
+    } catch (e) { /* bozuk/erişilemez kayıt yok sayılır */ }
+    renderAll();
+  }
+
+  function renderAll() {
+    renderParticipantTable();
+    renderTrialsTable();
+    renderKPIs();
+    renderSummaryTable();
+    renderQualitativeQuotes();
+    renderBoxPlot();
+    renderAccuracyChart();
+    renderPerceptionChart();
+    renderPreferencesChart();
+    updateCount();
+    updateSourceNote();
+  }
+
+  function updateCount() {
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    document.getElementById('participant-count-badge').textContent = visible.length + ' katılımcı';
+  }
+
+  function updateSourceNote() {
+    const note = document.getElementById('data-source-note');
+    const meta = allData.meta || {};
+    note.innerHTML = `<strong>Kaynak:</strong> ${meta.dataset_type || 'results.json'} · 
+      N = ${participants.filter(p => !deletedIds.has(p.participant_id)).length} · 
+      Protokol: v${meta.config_version || '1.0.0'} · 
+      Kural: ${meta.timeout_rule || 'Zaman aşımı süre ortalamasına katılmaz.'}`;
+  }
+
+  // -------------------------------------------------------------------------
+  // Katılımcı Tablosu
+  // -------------------------------------------------------------------------
+  function renderParticipantTable() {
+    const tbody = document.getElementById('participants-tbody');
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+
+    if (visible.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="19" class="empty-state">Henüz veri yok. Katılımcılar deneyi tamamladıkça burada görünür.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = visible.map((p, i) => {
+      const txtTrials = (p.condition_text?.trials || []);
+      const imgTrials = (p.condition_image?.trials || []);
+
+      const txtFirstOk = txtTrials.length ? Math.round(txtTrials.filter(t => t.firstAttemptSuccess || t.first_attempt_success).length / txtTrials.length * 100) + '%' : '—';
+      const imgFirstOk = imgTrials.length ? Math.round(imgTrials.filter(t => t.firstAttemptSuccess || t.first_attempt_success).length / imgTrials.length * 100) + '%' : '—';
+
+      const solvedTxt = txtTrials.filter(t => t.outcome === 'solved').map(t => t.durationSec || t.duration_sec).filter(Boolean);
+      const solvedImg = imgTrials.filter(t => t.outcome === 'solved').map(t => t.durationSec || t.duration_sec).filter(Boolean);
+      const avgTxt = solvedTxt.length ? (solvedTxt.reduce((a,b)=>a+b,0)/solvedTxt.length).toFixed(1) : '—';
+      const avgImg = solvedImg.length ? (solvedImg.reduce((a,b)=>a+b,0)/solvedImg.length).toFixed(1) : '—';
+
+      const ts = p.timestamp ? new Date(p.timestamp).toLocaleString('tr-TR') : '—';
+
+      return `<tr>
+        <td>${i+1}</td>
+        <td><code style="font-size:0.8rem;">${p.participant_code || p.participant_id}</code></td>
+        <td><strong>${p.order || '—'}</strong></td>
+        <td>${p.demographics?.device || '—'}</td>
+        <td>${p.demographics?.age_group || '—'}</td>
+        <td>${txtFirstOk}</td>
+        <td>${avgTxt}</td>
+        <td>${p.condition_text?.survey?.perceivedDifficulty || p.condition_text?.survey?.perceived_difficulty || '—'}</td>
+        <td>${p.condition_text?.survey?.perceivedSecurity || p.condition_text?.survey?.perceived_security || '—'}</td>
+        <td>${imgFirstOk}</td>
+        <td>${avgImg}</td>
+        <td>${p.condition_image?.survey?.perceivedDifficulty || p.condition_image?.survey?.perceived_difficulty || '—'}</td>
+        <td>${p.condition_image?.survey?.perceivedSecurity || p.condition_image?.survey?.perceived_security || '—'}</td>
+        <td>${p.preferences?.easier || '—'}</td>
+        <td>${p.preferences?.faster || '—'}</td>
+        <td>${p.preferences?.safer || '—'}</td>
+        <td style="max-width:180px; white-space:normal; font-size:0.8rem;">${p.preferences?.reason || p.preferences?.qualitative_reason || '—'}</td>
+        <td style="font-size:0.78rem;">${ts}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn-detail-row" onclick="showParticipantDetail('${p.participant_id}')">Anket Detayı</button>
+          <button class="btn-delete-row" onclick="deleteParticipant('${p.participant_id}')">Sil</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // -------------------------------------------------------------------------
+  // Deneme Tablosu
+  // -------------------------------------------------------------------------
+  function renderTrialsTable() {
+    const tbody = document.getElementById('trials-tbody');
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    const rows = [];
+
+    visible.forEach(p => {
+      const code = p.participant_code || p.participant_id;
+      ['condition_text', 'condition_image'].forEach(condKey => {
+        const condLabel = condKey === 'condition_text' ? 'Metin' : 'Görsel';
+        const trials = p[condKey]?.trials || [];
+        trials.forEach(t => {
+          const stimId = t.stimulusId || t.puzzleId || t.stimulus_id || t.puzzle_id || '—';
+          const tFirst = (t.tFirstInteraction && t.t0) ? ((t.tFirstInteraction - t.t0)/1000).toFixed(2) : '—';
+          rows.push(`<tr>
+            <td><code style="font-size:0.78rem;">${code}</code></td>
+            <td>${condLabel}</td>
+            <td>${p.order || '—'}</td>
+            <td>${t.trialIndex || t.trial_index || '—'}</td>
+            <td style="font-size:0.78rem;">${stimId}</td>
+            <td style="font-size:0.78rem;">${t.t0 || '—'}</td>
+            <td>${tFirst}</td>
+            <td>${t.durationSec || t.duration_sec || '—'}</td>
+            <td>${t.attempts || '—'}</td>
+            <td><span style="font-weight:600; color:${t.outcome==='solved'?'var(--color-success)':'var(--color-danger)'}">${t.outcome || '—'}</span></td>
+            <td>${(t.firstAttemptSuccess || t.first_attempt_success) ? '✓' : '✗'}</td>
+          </tr>`);
+        });
+      });
+    });
+
+    tbody.innerHTML = rows.length ? rows.join('') 
+      : '<tr><td colspan="11" class="empty-state">Deneme verisi yok.</td></tr>';
+  }
+
+  // -------------------------------------------------------------------------
+  // Silme İşlevi
+  // -------------------------------------------------------------------------
+  function persistDeletions() {
+    try {
+      localStorage.setItem('captcha_deleted_ids', JSON.stringify(Array.from(deletedIds)));
+    } catch (e) { /* localStorage kapalıysa sessizce geç */ }
+  }
+
+  function deleteParticipant(id) {
+    if (!confirm('Bu katılımcı kaydını silmek istediğinizden emin misiniz? Kayıt bu tarayıcıda kalıcı olarak gizlenecek ve CSV/JSON dışa aktarımlarına dahil edilmeyecek.')) return;
+    deletedIds.add(id);
+    persistDeletions();
+    renderAll();
+  }
+  window.deleteParticipant = deleteParticipant;
+
+  document.getElementById('btn-clear-all').addEventListener('click', () => {
+    if (!confirm('TÜM katılımcı verilerini bu görünümden kaldırmak istediğinizden emin misiniz? (Bu tarayıcıda kalıcıdır)')) return;
+    participants.forEach(p => deletedIds.add(p.participant_id));
+    persistDeletions();
+    renderAll();
+  });
+
+  // -------------------------------------------------------------------------
+  // Katılımcı Anket Detayı (Modal)
+  // -------------------------------------------------------------------------
+  function showParticipantDetail(id) {
+    const p = participants.find(x => x.participant_id === id);
+    if (!p) return;
+
+    const s1 = p.condition_text?.survey || {};
+    const s2 = p.condition_image?.survey || {};
+    const prefs = p.preferences || {};
+    const demo = p.demographics || {};
+
+    const val = (v) => (v === undefined || v === null || v === '') ? '—' : v;
+
+    const surveyCard = (title, s, condType) => `
+      <div class="detail-card">
+        <h4>${title}</h4>
+        <div class="detail-row"><span class="k">Koşul Türü</span><span class="v">${condType}</span></div>
+        <div class="detail-row"><span class="k">Zorluk / Çaba (1-7)</span><span class="v">${val(s.perceivedDifficulty || s.perceived_difficulty)}</span></div>
+        <div class="detail-row"><span class="k">Algılanan Güvenlik (1-7)</span><span class="v">${val(s.perceivedSecurity || s.perceived_security)}</span></div>
+        <div class="detail-row"><span class="k">Yönerge Açıklığı (1-7)</span><span class="v">${val(s.instructionClarity || s.instruction_clarity)}</span></div>
+      </div>`;
+
+    const cond1Label = p.order === 'AB' ? 'Koşul 1 — Bozulmuş Metin' : 'Koşul 1 — Görsel Seçimi';
+    const cond2Label = p.order === 'AB' ? 'Koşul 2 — Görsel Seçimi' : 'Koşul 2 — Bozulmuş Metin';
+    const cond1Type = p.order === 'AB' ? 'text' : 'image';
+    const cond2Type = p.order === 'AB' ? 'image' : 'text';
+
+    const ts = p.timestamp ? new Date(p.timestamp).toLocaleString('tr-TR') : '—';
+
+    document.getElementById('detail-modal-title').textContent = `Anket Detayı — ${p.participant_code || p.participant_id}`;
+    document.getElementById('participant-detail-content').innerHTML = `
+      <div class="detail-grid" style="grid-template-columns:1fr;">
+        <div class="detail-card">
+          <h4>Katılımcı Bilgisi</h4>
+          <div class="detail-row"><span class="k">Kod</span><span class="v">${p.participant_code || p.participant_id}</span></div>
+          <div class="detail-row"><span class="k">Sıra (AB/BA)</span><span class="v">${p.order || '—'}</span></div>
+          <div class="detail-row"><span class="k">Cihaz</span><span class="v">${demo.device || '—'}</span></div>
+          <div class="detail-row"><span class="k">Yaş Aralığı</span><span class="v">${demo.age_group || '—'}</span></div>
+          <div class="detail-row"><span class="k">CAPTCHA Sıklığı</span><span class="v">${demo.captchaFrequency || demo.captcha_frequency || '—'}</span></div>
+          <div class="detail-row"><span class="k">Zaman</span><span class="v">${ts}</span></div>
+        </div>
+      </div>
+      <div class="detail-grid">
+        ${surveyCard(cond1Label, s1, cond1Type)}
+        ${surveyCard(cond2Label, s2, cond2Type)}
+      </div>
+      <div class="detail-grid" style="grid-template-columns:1fr;">
+        <div class="detail-card">
+          <h4>Tercihler</h4>
+          <div class="detail-row"><span class="k">Daha Kolay</span><span class="v">${prefs.easier || '—'}</span></div>
+          <div class="detail-row"><span class="k">Daha Hızlı</span><span class="v">${prefs.faster || '—'}</span></div>
+          <div class="detail-row"><span class="k">Daha Güvenli (algı)</span><span class="v">${prefs.safer || '—'}</span></div>
+          <div class="detail-row" style="flex-direction:column; align-items:flex-start; gap:0;">
+            <span class="k">Gerekçe</span>
+            <span class="v" style="text-align:left; font-weight:500;">${prefs.reason || prefs.qualitative_reason || '—'}</span>
+          </div>
+        </div>
+      </div>`;
+
+    document.getElementById('participant-detail-modal').classList.add('active');
+  }
+  window.showParticipantDetail = showParticipantDetail;
+
+  document.getElementById('btn-detail-close').addEventListener('click', () => {
+    document.getElementById('participant-detail-modal').classList.remove('active');
+  });
+  document.getElementById('participant-detail-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('participant-detail-modal')) {
+      document.getElementById('participant-detail-modal').classList.remove('active');
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // CSV İndirme
+  // -------------------------------------------------------------------------
+  document.getElementById('btn-download-csv').addEventListener('click', () => {
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    if (visible.length === 0) { alert('İndirilecek veri yok.'); return; }
+
+    // Türkçe Excel varsayılan ayırıcısı noktalı virgüldür; virgül ayırıcı "düzgün açılmama" sorununa yol açar.
+    // Tüm alanları tırnak içine alıp çift tırnağı doğru şekilde kaçışlarız.
+    const SEP = ';';
+    const esc = (v) => {
+      const s = (v === undefined || v === null) ? '' : String(v);
+      return '"' + s.replace(/"/g, '""') + '"';
+    };
+
+    const headers = [
+      'katilimci_kodu','sira','yas_araligi','cihaz','captcha_sikligi',
+      'metin_ilk_deneme_dogru_yuzde','metin_ort_sure_sn','metin_zorluk','metin_alg_guvenlik','metin_yonerge_netligi',
+      'gorsel_ilk_deneme_dogru_yuzde','gorsel_ort_sure_sn','gorsel_zorluk','gorsel_alg_guvenlik','gorsel_yonerge_netligi',
+      'pref_kolay','pref_hizli','pref_guvenli','pref_neden','zaman_damgasi'
+    ];
+
+    const rows = [headers.map(esc).join(SEP)];
+
+    visible.forEach(p => {
+      const txtT = (p.condition_text?.trials||[]);
+      const imgT = (p.condition_image?.trials||[]);
+      const solvedTxt = txtT.filter(t=>t.outcome==='solved').map(t=>t.durationSec||t.duration_sec||0).filter(Boolean);
+      const solvedImg = imgT.filter(t=>t.outcome==='solved').map(t=>t.durationSec||t.duration_sec||0).filter(Boolean);
+
+      const txtFirstOk = txtT.length ? Math.round(txtT.filter(t=>t.firstAttemptSuccess||t.first_attempt_success).length/txtT.length*100) : '';
+      const imgFirstOk = imgT.length ? Math.round(imgT.filter(t=>t.firstAttemptSuccess||t.first_attempt_success).length/imgT.length*100) : '';
+      const avgTxt = solvedTxt.length ? (solvedTxt.reduce((a,b)=>a+b,0)/solvedTxt.length).toFixed(2) : '';
+      const avgImg = solvedImg.length ? (solvedImg.reduce((a,b)=>a+b,0)/solvedImg.length).toFixed(2) : '';
+
+      const txtS = p.condition_text?.survey || {};
+      const imgS = p.condition_image?.survey || {};
+      const prefs = p.preferences || {};
+
+      rows.push([
+        p.participant_code||p.participant_id||'',
+        p.order||'',
+        p.demographics?.age_group||'',
+        p.demographics?.device||'',
+        p.demographics?.captchaFrequency||p.demographics?.captcha_frequency||'',
+        txtFirstOk, avgTxt,
+        txtS.perceivedDifficulty||txtS.perceived_difficulty||'',
+        txtS.perceivedSecurity||txtS.perceived_security||'',
+        txtS.instructionClarity||txtS.instruction_clarity||'',
+        imgFirstOk, avgImg,
+        imgS.perceivedDifficulty||imgS.perceived_difficulty||'',
+        imgS.perceivedSecurity||imgS.perceived_security||'',
+        imgS.instructionClarity||imgS.instruction_clarity||'',
+        prefs.easier||'',
+        prefs.faster||'',
+        prefs.safer||'',
+        prefs.reason||prefs.qualitative_reason||'',
+        p.timestamp||'',
+      ].map(esc).join(SEP));
+    });
+
+    const blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `captcha_deney_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // Nesne URL'sini hemen serbest bırakmak bazı tarayıcılarda indirmeyi bozar; geciktir.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  // JSON İndirme
+  document.getElementById('btn-download-raw').addEventListener('click', () => {
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    const exportObj = { ...allData, participants: visible };
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `captcha_deney_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  // -------------------------------------------------------------------------
+  // İstatistik Hesaplama
+  // -------------------------------------------------------------------------
+  function computeStats() {
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    if (visible.length === 0) return null;
+
+    function trialStats(condKey) {
+      const allTrials = visible.flatMap(p => p[condKey]?.trials || []);
+      const solvedTrials = allTrials.filter(t => t.outcome === 'solved');
+      const durations = solvedTrials.map(t => t.durationSec || t.duration_sec || 0).filter(Boolean).sort((a,b)=>a-b);
+      const firstOk = allTrials.filter(t => t.firstAttemptSuccess || t.first_attempt_success).length;
+
+      const med = durations.length ? durations[Math.floor(durations.length/2)] : null;
+      const q1 = durations.length ? durations[Math.floor(durations.length/4)] : null;
+      const q3 = durations.length ? durations[Math.floor(3*durations.length/4)] : null;
+      const mean = durations.length ? durations.reduce((a,b)=>a+b,0)/durations.length : null;
+
+      const difficulties = visible.map(p => p[condKey]?.survey?.perceivedDifficulty || p[condKey]?.survey?.perceived_difficulty).filter(Boolean);
+      const securities = visible.map(p => p[condKey]?.survey?.perceivedSecurity || p[condKey]?.survey?.perceived_security).filter(Boolean);
+      const avgDiff = difficulties.length ? (difficulties.reduce((a,b)=>a+b,0)/difficulties.length).toFixed(1) : '—';
+      const avgSec = securities.length ? (securities.reduce((a,b)=>a+b,0)/securities.length).toFixed(1) : '—';
+
+      return {
+        n: allTrials.length,
+        firstOkPct: allTrials.length ? Math.round(firstOk/allTrials.length*100) : 0,
+        completionPct: allTrials.length ? Math.round(solvedTrials.length/allTrials.length*100) : 0,
+        timeouts: allTrials.filter(t=>t.outcome==='timeout').length,
+        meanDur: mean ? mean.toFixed(2) : '—',
+        medDur: med ? med.toFixed(2) : '—',
+        q1: q1 ? q1.toFixed(2) : '—',
+        q3: q3 ? q3.toFixed(2) : '—',
+        iqr: (q1 && q3) ? (q3-q1).toFixed(2) : '—',
+        minDur: durations.length ? durations[0].toFixed(2) : '—',
+        maxDur: durations.length ? durations[durations.length-1].toFixed(2) : '—',
+        avgDiff, avgSec,
+        rawDurations: durations
+      };
+    }
+
+    const txt = trialStats('condition_text');
+    const img = trialStats('condition_image');
+
+    const prefCounts = { easier:{}, faster:{}, safer:{} };
+    visible.forEach(p => {
+      const prefs = p.preferences || {};
+      ['easier','faster','safer'].forEach(k => {
+        const v = prefs[k];
+        if (v) prefCounts[k][v] = (prefCounts[k][v]||0) + 1;
+      });
+    });
+
+    return { txt, img, prefCounts, n: visible.length };
+  }
+
+  // -------------------------------------------------------------------------
+  // KPI Cards
+  // -------------------------------------------------------------------------
+  function renderKPIs() {
+    const stats = computeStats();
+    const el = document.getElementById('kpi-row');
+    if (!stats) { el.innerHTML = '<p class="text-muted">Veri yok.</p>'; return; }
+    el.innerHTML = `
+      <div class="metric-card"><div class="metric-caption">İlk Deneme Doğruluk (Metin)</div><div class="metric-value-huge" style="color:#9A3B26;">%${stats.txt.firstOkPct}</div></div>
+      <div class="metric-card"><div class="metric-caption">İlk Deneme Doğruluk (Görsel)</div><div class="metric-value-huge">%${stats.img.firstOkPct}</div></div>
+      <div class="metric-card"><div class="metric-caption">Medyan Süre (Metin)</div><div class="metric-value-huge" style="color:#9A3B26;">${stats.txt.medDur} sn</div></div>
+      <div class="metric-card"><div class="metric-caption">Medyan Süre (Görsel)</div><div class="metric-value-huge">${stats.img.medDur} sn</div></div>
+      <div class="metric-card"><div class="metric-caption">Alg. Güvenlik Ort. (Metin)</div><div class="metric-value-huge" style="color:#9A3B26;">${stats.txt.avgSec} / 7</div></div>
+      <div class="metric-card"><div class="metric-caption">Alg. Güvenlik Ort. (Görsel)</div><div class="metric-value-huge">${stats.img.avgSec} / 7</div></div>
+    `;
+  }
+
+  // -------------------------------------------------------------------------
+  // Özet Tablo
+  // -------------------------------------------------------------------------
+  function renderSummaryTable() {
+    const stats = computeStats();
+    const tbody = document.getElementById('summary-table-body');
+    if (!stats) { tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Veri yok.</td></tr>'; return; }
+    const rows = [
+      ['İlk Denemede Doğruluk', `%${stats.txt.firstOkPct}`, `%${stats.img.firstOkPct}`, ''],
+      ['Tamamlama Oranı', `%${stats.txt.completionPct}`, `%${stats.img.completionPct}`, ''],
+      ['Zaman Aşımı Sayısı', stats.txt.timeouts, stats.img.timeouts, 'Süre ort. hesabına dahil değil'],
+      ['Ortalama Süre (çözülen)', `${stats.txt.meanDur} sn`, `${stats.img.meanDur} sn`, ''],
+      ['Medyan Süre', `${stats.txt.medDur} sn`, `${stats.img.medDur} sn`, ''],
+      ['IQR (Q1 – Q3)', `${stats.txt.q1} – ${stats.txt.q3} sn`, `${stats.img.q1} – ${stats.img.q3} sn`, ''],
+      ['Ort. Algılanan Zorluk (1-7)', stats.txt.avgDiff, stats.img.avgDiff, ''],
+      ['Ort. Algılanan Güvenlik (1-7)', stats.txt.avgSec, stats.img.avgSec, 'Algı paradoksu: daha zor ≠ daha güvenli'],
+    ];
+    tbody.innerHTML = rows.map(r => `<tr><td><strong>${r[0]}</strong></td><td>${r[1]}</td><td>${r[2]}</td><td class="text-small text-muted">${r[3]}</td></tr>`).join('');
+  }
+
+  // -------------------------------------------------------------------------
+  // Açık Uçlu Yanıtlar
+  // -------------------------------------------------------------------------
+  function renderQualitativeQuotes() {
+    const el = document.getElementById('qualitative-quotes-list');
+    const visible = participants.filter(p => !deletedIds.has(p.participant_id));
+    const quotes = visible.map(p => ({
+      code: p.participant_code || p.participant_id,
+      reason: p.preferences?.reason || p.preferences?.qualitative_reason
+    })).filter(q => q.reason);
+
+    if (!quotes.length) { el.innerHTML = '<p class="text-muted">Henüz açık uçlu yanıt yok.</p>'; return; }
+    el.innerHTML = quotes.map(q => `
+      <blockquote style="border-left:3px solid var(--color-teal); padding-left:var(--space-md); margin-bottom:var(--space-md); font-style:italic;">
+        "${q.reason}"
+        <footer style="margin-top:4px; font-size:0.82rem; font-style:normal; color:var(--color-ink-muted);">— Katılımcı <strong>${q.code}</strong></footer>
+      </blockquote>
+    `).join('');
+  }
+
+  // -------------------------------------------------------------------------
+  // GRAFİKLER (SVG, veriden hesaplanan)
+  // -------------------------------------------------------------------------
+  function renderBoxPlot() {
+    const el = document.getElementById('chart-boxplot-container');
+    const stats = computeStats();
+    if (!stats || (!stats.txt.rawDurations.length && !stats.img.rawDurations.length)) {
+      el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return;
+    }
+
+    const W = 500, H = 200, padL = 140, padR = 30, padT = 30, padB = 35;
+    const chartW = W - padL - padR;
+    const maxT = Math.max(30, stats.txt.maxDur || 0, stats.img.maxDur || 0);
+    const scX = v => padL + (Math.min(+v, maxT) / maxT) * chartW;
+
+    function box(y, s, label, col) {
+      if (!s.rawDurations.length) return `<text x="135" y="${y+5}" font-family="Inter,sans-serif" font-size="12" fill="#57534E" text-anchor="end">${label}: veri yok</text>`;
+      return `
+        <text x="125" y="${y+5}" font-family="Newsreader,serif" font-size="13" font-weight="600" fill="#1F1E1B" text-anchor="end">${label}</text>
+        <line x1="${scX(s.minDur)}" y1="${y}" x2="${scX(s.maxDur)}" y2="${y}" stroke="#1F1E1B" stroke-width="2"/>
+        <line x1="${scX(s.minDur)}" y1="${y-8}" x2="${scX(s.minDur)}" y2="${y+8}" stroke="#1F1E1B" stroke-width="2"/>
+        <line x1="${scX(s.maxDur)}" y1="${y-8}" x2="${scX(s.maxDur)}" y2="${y+8}" stroke="#1F1E1B" stroke-width="2"/>
+        <rect x="${scX(s.q1)}" y="${y-16}" width="${Math.max(scX(s.q3)-scX(s.q1),2)}" height="32" fill="${col}" stroke="#1F1E1B" stroke-width="2" rx="2"/>
+        <line x1="${scX(s.medDur)}" y1="${y-16}" x2="${scX(s.medDur)}" y2="${y+16}" stroke="#1F1E1B" stroke-width="3.5"/>
+        <text x="${scX(s.medDur)}" y="${y-22}" font-family="Inter,sans-serif" font-size="10" fill="#0E6B5B" text-anchor="middle" font-weight="600">${s.medDur}s</text>
+      `;
+    }
+
+    let ticks = '';
+    for (let t = 0; t <= maxT; t += 5) {
+      const x = scX(t);
+      ticks += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}" stroke="#EDE8DE" stroke-width="1"/>
+        <line x1="${x}" y1="${H-padB}" x2="${x}" y2="${H-padB+5}" stroke="#1F1E1B" stroke-width="1.5"/>
+        <text x="${x}" y="${H-padB+18}" font-family="Inter,sans-serif" font-size="10" fill="#57534E" text-anchor="middle">${t}s</text>`;
+    }
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Box Plot">
+      <rect width="${W}" height="${H}" fill="#FAF9F6"/>
+      ${ticks}
+      <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#1F1E1B" stroke-width="2"/>
+      ${box(70, stats.txt, 'Metin', '#DDD7CC')}
+      ${box(130, stats.img, 'Görsel', '#C6DED9')}
+    </svg>`;
+  }
+
+  function renderAccuracyChart() {
+    const el = document.getElementById('chart-accuracy-container');
+    const stats = computeStats();
+    if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
+
+    const W = 480, H = 160, padL = 150, barW = 260;
+    const scX = pct => (pct/100)*barW;
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Doğruluk Grafik">
+      <rect width="${W}" height="${H}" fill="#FAF9F6"/>
+      ${[0,25,50,75,100].map(p=>`
+        <line x1="${padL+scX(p)}" y1="10" x2="${padL+scX(p)}" y2="${H-20}" stroke="#EDE8DE" stroke-width="1"/>
+        <text x="${padL+scX(p)}" y="${H-5}" font-family="Inter,sans-serif" font-size="10" fill="#57534E" text-anchor="middle">%${p}</text>
+      `).join('')}
+      <text x="135" y="48" font-family="Newsreader,serif" font-size="12" font-weight="600" fill="#1F1E1B" text-anchor="end">Metin: İlk Deneme</text>
+      <rect x="${padL}" y="33" width="${scX(stats.txt.firstOkPct)}" height="22" fill="#9A3B26" stroke="#1F1E1B" stroke-width="1.5" rx="2"/>
+      <text x="${padL+scX(stats.txt.firstOkPct)+6}" y="49" font-family="Inter,sans-serif" font-size="11" fill="#1F1E1B" font-weight="600">%${stats.txt.firstOkPct}</text>
+      <text x="135" y="90" font-family="Newsreader,serif" font-size="12" font-weight="600" fill="#1F1E1B" text-anchor="end">Görsel: İlk Deneme</text>
+      <rect x="${padL}" y="75" width="${scX(stats.img.firstOkPct)}" height="22" fill="#0E6B5B" stroke="#1F1E1B" stroke-width="1.5" rx="2"/>
+      <text x="${padL+scX(stats.img.firstOkPct)+6}" y="91" font-family="Inter,sans-serif" font-size="11" fill="#0E6B5B" font-weight="600">%${stats.img.firstOkPct}</text>
+    </svg>`;
+  }
+
+  function renderPerceptionChart() {
+    const el = document.getElementById('chart-perception-container');
+    const stats = computeStats();
+    if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
+
+    const W=460, H=260, pad=60, cW=W-pad*2, cH=H-pad*2;
+    const scX = v => pad + ((v-1)/6)*cW;
+    const scY = v => H-pad - ((v-1)/6)*cH;
+    const txtD = parseFloat(stats.txt.avgDiff)||0;
+    const txtS = parseFloat(stats.txt.avgSec)||0;
+    const imgD = parseFloat(stats.img.avgDiff)||0;
+    const imgS = parseFloat(stats.img.avgSec)||0;
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Algı Matrisi">
+      <rect width="${W}" height="${H}" fill="#FAF9F6"/>
+      ${[1,2,3,4,5,6,7].map(v=>`
+        <line x1="${scX(v)}" y1="${pad}" x2="${scX(v)}" y2="${H-pad}" stroke="#EDE8DE" stroke-width="1"/>
+        <line x1="${pad}" y1="${scY(v)}" x2="${W-pad}" y2="${scY(v)}" stroke="#EDE8DE" stroke-width="1"/>
+        <text x="${scX(v)}" y="${H-pad+15}" font-family="Inter,sans-serif" font-size="10" fill="#57534E" text-anchor="middle">${v}</text>
+        <text x="${pad-8}" y="${scY(v)+4}" font-family="Inter,sans-serif" font-size="10" fill="#57534E" text-anchor="end">${v}</text>
+      `).join('')}
+      <line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#1F1E1B" stroke-width="2"/>
+      <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" stroke="#1F1E1B" stroke-width="2"/>
+      <text x="${W/2}" y="${H-8}" font-family="Inter,sans-serif" font-size="11" fill="#57534E" text-anchor="middle">Zorluk (1-7)</text>
+      ${txtD&&txtS?`<circle cx="${scX(txtD)}" cy="${scY(txtS)}" r="9" fill="#9A3B26" stroke="#1F1E1B" stroke-width="2"/>
+        <text x="${scX(txtD)+14}" y="${scY(txtS)+4}" font-family="Inter,sans-serif" font-size="11" fill="#9A3B26" font-weight="700">Metin (${txtD},${txtS})</text>`:''}
+      ${imgD&&imgS?`<circle cx="${scX(imgD)}" cy="${scY(imgS)}" r="9" fill="#0E6B5B" stroke="#1F1E1B" stroke-width="2"/>
+        <text x="${scX(imgD)+14}" y="${scY(imgS)+4}" font-family="Inter,sans-serif" font-size="11" fill="#0E6B5B" font-weight="700">Görsel (${imgD},${imgS})</text>`:''}
+    </svg>`;
+  }
+
+  function renderPreferencesChart() {
+    const el = document.getElementById('chart-preferences-container');
+    const stats = computeStats();
+    if (!stats) { el.innerHTML = '<p class="empty-state">Veri yok.</p>'; return; }
+
+    const W=480, H=180, padL=170, barW=240;
+    const n = stats.n || 1;
+    const pref = stats.prefCounts;
+
+    function prefBar(y, label, counts) {
+      const imgN = counts['Görsel Seçimi'] || 0;
+      const txtN = counts['Bozulmuş Metin'] || 0;
+      const othN = n - imgN - txtN;
+      const wImg = (imgN/n)*barW, wTxt = (txtN/n)*barW, wOth = (othN/n)*barW;
+      return `
+        <text x="155" y="${y+14}" font-family="Newsreader,serif" font-size="12" font-weight="600" fill="#1F1E1B" text-anchor="end">${label}</text>
+        <rect x="${padL}" y="${y}" width="${wImg}" height="22" fill="#0E6B5B" stroke="#1F1E1B" stroke-width="1"/>
+        ${wImg>20?`<text x="${padL+wImg/2}" y="${y+15}" font-family="Inter,sans-serif" font-size="10" fill="#FAF9F6" text-anchor="middle">${imgN}</text>`:''}
+        <rect x="${padL+wImg}" y="${y}" width="${wTxt}" height="22" fill="#888177" stroke="#1F1E1B" stroke-width="1"/>
+        ${wTxt>20?`<text x="${padL+wImg+wTxt/2}" y="${y+15}" font-family="Inter,sans-serif" font-size="10" fill="#FAF9F6" text-anchor="middle">${txtN}</text>`:''}
+        <rect x="${padL+wImg+wTxt}" y="${y}" width="${wOth}" height="22" fill="#D8D1C4" stroke="#1F1E1B" stroke-width="1"/>
+      `;
+    }
+
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Tercih Grafik">
+      <rect width="${W}" height="${H}" fill="#FAF9F6"/>
+      <rect x="${padL}" y="8" width="14" height="12" fill="#0E6B5B"/><text x="${padL+18}" y="19" font-family="Inter,sans-serif" font-size="10" fill="#1F1E1B">Görsel</text>
+      <rect x="${padL+80}" y="8" width="14" height="12" fill="#888177"/><text x="${padL+98}" y="19" font-family="Inter,sans-serif" font-size="10" fill="#1F1E1B">Metin</text>
+      <rect x="${padL+155}" y="8" width="14" height="12" fill="#D8D1C4"/><text x="${padL+173}" y="19" font-family="Inter,sans-serif" font-size="10" fill="#1F1E1B">Fark Yok</text>
+      ${prefBar(35, 'Daha Kolay:', pref.easier||{})}
+      ${prefBar(70, 'Daha Hızlı:', pref.faster||{})}
+      ${prefBar(105, 'Daha Güvenli:', pref.safer||{})}
+    </svg>`;
+  }
+
+  // -------------------------------------------------------------------------
+  // Fallback gömülü veri
+  // -------------------------------------------------------------------------
+  function getFallbackData() {
+    return {
+      meta: {
+        dataset_type: "Gerçek Deney Verisi (henüz toplanmadı)",
+        sample_size: 0,
+        counterbalancing: "50/50 AB-BA (veri geldikçe güncellenir)",
+        timeout_rule: "Zaman aşımına uğrayan denemeler tamamlama süresi hesaplamalarına DAHİL EDİLMEMİŞTİR.",
+        config_version: "1.0.0"
+      },
+      summary: {},
+      participants: []
+    };
+  }
+
+  // Başlat
+  loadData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-10-28T17:15:00Z",
+  "protocol": "CAPTCHA HCI Research Protocol 2026 - Fixed Stimuli Manifest",
+  "tiles": [
+    {
+      "id": "tile_bike_01",
+      "filename": "tile_bike_01.jpg",
+      "is_target": true,
+      "label": "bisiklet",
+      "subclass": "şehir bisikleti",
+      "description": "Bina önünde bisiklet park demirine kilitli bisikletler",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_bike_02",
+      "filename": "tile_bike_02.jpg",
+      "is_target": true,
+      "label": "bisiklet",
+      "subclass": "hibrit bisiklet",
+      "description": "Taş duvar önünde park edilmiş bisiklet",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_bike_03",
+      "filename": "tile_bike_03.jpg",
+      "is_target": true,
+      "label": "bisiklet",
+      "subclass": "şehir bisikleti",
+      "description": "Amsterdam'da grafiti kaplı duvar önünde park edilmiş şehir bisikleti",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_bike_04",
+      "filename": "tile_bike_04.jpg",
+      "is_target": true,
+      "label": "bisiklet",
+      "subclass": "dağ bisikleti",
+      "description": "Bisiklet kafesinde park edilmiş bisiklet",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_bike_05",
+      "filename": "tile_bike_05.jpg",
+      "is_target": true,
+      "label": "bisiklet",
+      "subclass": "bagajlı şehir bisikleti",
+      "description": "Çocuk koltuğu olan park edilmiş şehir bisikleti",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_bike_06",
+      "filename": "tile_bike_06.jpg",
+      "is_target": true,
+      "label": "bisiklet",
+      "subclass": "yol yarış bisikleti",
+      "description": "Yolda bisiklet süren kişi",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_dist_motorcycle",
+      "filename": "tile_dist_motorcycle.jpg",
+      "is_target": false,
+      "label": "karıştırıcı",
+      "subclass": "motosiklet",
+      "description": "Yol kenarında park edilmiş motosiklet",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_dist_scooter",
+      "filename": "tile_dist_scooter.jpg",
+      "is_target": false,
+      "label": "karıştırıcı",
+      "subclass": "elektrikli skuter",
+      "description": "Kaldırımda elektrikli skuter",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_dist_bench",
+      "filename": "tile_dist_bench.jpg",
+      "is_target": false,
+      "label": "karıştırıcı",
+      "subclass": "park bankı",
+      "description": "Ahşap çıtalı park bankı",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_dist_fence",
+      "filename": "tile_dist_fence.jpg",
+      "is_target": false,
+      "label": "karıştırıcı",
+      "subclass": "bahçe çiti",
+      "description": "Ferforje bahçe parmaklığı",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_dist_hydrant",
+      "filename": "tile_dist_hydrant.jpg",
+      "is_target": false,
+      "label": "karıştırıcı",
+      "subclass": "yangın musluğu",
+      "description": "Sokak kenarında yangın musluğu",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_dist_lamp",
+      "filename": "tile_dist_lamp.jpg",
+      "is_target": false,
+      "label": "karıştırıcı",
+      "subclass": "sokak lambası",
+      "description": "Kent meydanında sıralı dekoratif sokak lambaları",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_dist_car",
+      "filename": "tile_dist_car.jpg",
+      "is_target": false,
+      "label": "karıştırıcı",
+      "subclass": "otomobil",
+      "description": "Park edilmiş otomobil",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_dist_bus_stop",
+      "filename": "tile_dist_bus_stop.jpg",
+      "is_target": false,
+      "label": "karıştırıcı",
+      "subclass": "otobüs durağı",
+      "description": "Otobüs durağı",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    },
+    {
+      "id": "tile_dist_fountain",
+      "filename": "tile_dist_fountain.jpg",
+      "is_target": false,
+      "label": "karıştırıcı",
+      "subclass": "çeşme",
+      "description": "Sanat müzesi önündeki kent çeşmesi",
+      "source": "Gerçek Fotoğraf (Unsplash / Wikimedia Commons)"
+    }
+  ],
+  "image_puzzles": [
+    {
+      "trial_index": 1,
+      "puzzle_id": "img_puz_01",
+      "target_category": "bisiklet",
+      "instruction": "İçinde bisiklet olan tüm kareleri seçin.",
+      "grid_size": 3,
+      "target_count": 3,
+      "target_ids": ["tile_bike_01", "tile_bike_02", "tile_bike_03"],
+      "layout": [
+        "tile_bike_01",
+        "tile_dist_bench",
+        "tile_dist_motorcycle",
+        "tile_dist_fence",
+        "tile_bike_02",
+        "tile_dist_hydrant",
+        "tile_dist_lamp",
+        "tile_bike_03",
+        "tile_dist_car"
+      ]
+    },
+    {
+      "trial_index": 2,
+      "puzzle_id": "img_puz_02",
+      "target_category": "bisiklet",
+      "instruction": "İçinde bisiklet olan tüm kareleri seçin.",
+      "grid_size": 3,
+      "target_count": 2,
+      "target_ids": ["tile_bike_04", "tile_bike_05"],
+      "layout": [
+        "tile_dist_scooter",
+        "tile_bike_04",
+        "tile_dist_bus_stop",
+        "tile_dist_lamp",
+        "tile_dist_bench",
+        "tile_bike_05",
+        "tile_dist_fence",
+        "tile_dist_hydrant",
+        "tile_dist_car"
+      ]
+    },
+    {
+      "trial_index": 3,
+      "puzzle_id": "img_puz_03",
+      "target_category": "bisiklet",
+      "instruction": "İçinde bisiklet olan tüm kareleri seçin.",
+      "grid_size": 3,
+      "target_count": 4,
+      "target_ids": ["tile_bike_01", "tile_bike_03", "tile_bike_05", "tile_bike_06"],
+      "layout": [
+        "tile_bike_01",
+        "tile_dist_fountain",
+        "tile_bike_03",
+        "tile_dist_motorcycle",
+        "tile_bike_05",
+        "tile_dist_bench",
+        "tile_dist_hydrant",
+        "tile_bike_06",
+        "tile_dist_car"
+      ]
+    }
+  ],
+  "text_stimuli": [
+    {
+      "trial_index": 1,
+      "stimulus_id": "txt_stim_01",
+      "text": "T7W2K",
+      "length": 5,
+      "seed": 10427,
+      "char_angles": [-12, 14, -8, 16, -10],
+      "char_offsets_y": [4, -6, 5, -3, 6],
+      "refresh_variants": [
+        {
+          "text": "M4K9R",
+          "char_angles": [10, -14, 8, -12, 15],
+          "char_offsets_y": [-4, 5, -3, 6, -5]
+        },
+        {
+          "text": "D2X7P",
+          "char_angles": [-15, 11, -13, 9, -16],
+          "char_offsets_y": [5, -4, 6, -5, 3]
+        }
+      ]
+    },
+    {
+      "trial_index": 2,
+      "stimulus_id": "txt_stim_02",
+      "text": "P8X4M",
+      "length": 5,
+      "seed": 20851,
+      "char_angles": [15, -10, 12, -14, 8],
+      "char_offsets_y": [-5, 7, -4, 5, -6],
+      "refresh_variants": [
+        {
+          "text": "V6H3Y",
+          "char_angles": [-11, 13, -15, 8, -10],
+          "char_offsets_y": [6, -4, 5, -7, 4]
+        },
+        {
+          "text": "B9E4C",
+          "char_angles": [14, -12, 10, -16, 12],
+          "char_offsets_y": [-5, 6, -3, 5, -6]
+        }
+      ]
+    },
+    {
+      "trial_index": 3,
+      "stimulus_id": "txt_stim_03",
+      "text": "H3N9F",
+      "length": 5,
+      "seed": 31415,
+      "char_angles": [-16, 12, -15, 10, -8],
+      "char_offsets_y": [6, -5, 7, -6, 4],
+      "refresh_variants": [
+        {
+          "text": "R8T2W",
+          "char_angles": [12, -14, 11, -13, 15],
+          "char_offsets_y": [-4, 6, -5, 4, -5]
+        },
+        {
+          "text": "C5M7K",
+          "char_angles": [-13, 15, -9, 14, -11],
+          "char_offsets_y": [5, -6, 4, -4, 6]
+        }
+      ]
+    }
+  ]
+}
