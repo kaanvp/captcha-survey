@@ -271,6 +271,14 @@ class ExperimentController {
         item.classList.add("completed");
       }
     });
+
+    // Dar ekranda adım listesi yatay kaydırılır; aktif adım görünür alana getirilir
+    const list = document.querySelector(".progress-steps-list");
+    const activeItem = list ? list.querySelector(".progress-step-item.active") : null;
+    if (list && activeItem && list.scrollWidth > list.clientWidth) {
+      const targetLeft = activeItem.offsetLeft - (list.clientWidth - activeItem.offsetWidth) / 2;
+      list.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+    }
   }
 
   startCondition(condIndex) {

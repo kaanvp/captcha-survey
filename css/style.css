@@ -659,7 +659,7 @@ a:hover {
   justify-content: center;
 }
 
-#captcha-canvas {
+.canvas-wrapper canvas {
   background-color: #EDE8DE;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
@@ -1252,20 +1252,145 @@ a:hover {
   :root {
     --font-size-base: 16px;
   }
-  
+
+  /* Sayfa iskeleti: kenar boşlukları daraltılarak içerik alanı korunur */
+  .container {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+
+  .main-content {
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-xl);
+  }
+
+  /* Tipografi */
   h1 {
-    font-size: 1.75rem;
+    font-size: 1.7rem;
   }
-  
+
   h2 {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
   }
 
-  .grid-3x3 {
-    max-width: 320px;
-    gap: 6px;
+  h3 {
+    font-size: 1.15rem;
   }
 
+  p.lead {
+    font-size: 1.05rem;
+  }
+
+  /* Üst çubuk: dokunma hedefleri büyütülür */
+  .site-header {
+    padding-top: var(--space-sm);
+    padding-bottom: var(--space-sm);
+  }
+
+  .header-inner {
+    gap: var(--space-sm);
+  }
+
+  .header-title {
+    font-size: 1.02rem;
+  }
+
+  .header-course-tag {
+    font-size: 0.74rem;
+  }
+
+  .btn-withdraw {
+    min-height: 48px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.92rem;
+  }
+
+  .header-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* İlerleme çubuğu: sabit genişlikte yatay kaydırma (aktif adım JS ile ortalanır) */
+  .progress-steps-list {
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .progress-step-item {
+    flex: 0 0 76px;
+    min-width: 76px;
+  }
+
+  .step-label-text {
+    font-size: 0.72rem;
+    line-height: 1.25;
+    min-height: 2.4em;
+  }
+
+  /* Kartlar: iç içe boşluklar azaltılarak CAPTCHA alanına yer açılır */
+  .card-box,
+  .card-box-accent {
+    padding: var(--space-md);
+  }
+
+  .demo-registration-box {
+    padding: var(--space-md);
+  }
+
+  .captcha-container {
+    padding: var(--space-md);
+  }
+
+  .demo-fields-grid {
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  /* Görsel seçimi CAPTCHA: başlık ve örnek görsel küçültülür */
+  .recaptcha-head {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .recaptcha-head-label {
+    font-size: 0.88rem;
+  }
+
+  .recaptcha-head-target {
+    font-size: 1.5rem;
+  }
+
+  .recaptcha-head-sub {
+    font-size: 0.78rem;
+  }
+
+  .recaptcha-head-example {
+    width: 64px;
+    height: 64px;
+  }
+
+  .recaptcha-foot {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .rc-verify {
+    padding: 0 16px;
+    font-size: 0.9rem;
+  }
+
+  /* Metin CAPTCHA: canvas taşmadan ölçeklenir */
+  .canvas-wrapper {
+    width: 100%;
+  }
+
+  .text-captcha-input-row {
+    max-width: 100%;
+  }
+
+  /* Butonlar ve formlar */
   .button-row {
     flex-direction: column;
     align-items: stretch;
@@ -1275,13 +1400,105 @@ a:hover {
     width: 100%;
   }
 
+  .modal-actions {
+    flex-wrap: wrap;
+  }
+
+  .modal-actions .btn {
+    flex: 1 1 100%;
+  }
+
+  /* Likert: 7'li ölçek tek satırda kalır, dokunma yüksekliği korunur */
   .likert-scale {
     gap: 2px;
   }
 
   .likert-btn {
-    min-height: 40px;
-    font-size: 0.95rem;
+    min-height: 44px;
+    font-size: 1rem;
+    padding: 0;
+  }
+
+  .likert-endpoints {
+    font-size: 0.74rem;
+    gap: var(--space-sm);
+  }
+
+  /* Tercih kartları */
+  .pref-radio-card {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  /* Modal: uzun içerik ekran içinde kaydırılabilir */
+  .modal-overlay {
+    padding: var(--space-sm);
+  }
+
+  .modal-window {
+    padding: var(--space-lg);
+    max-height: calc(100vh - 2 * var(--space-sm));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Kod rozetleri dar ekranda taşmasın */
+  .completion-badge {
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    word-break: break-all;
+  }
+
+  .participant-code-display {
+    font-size: 1.05rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* Araştırmacı paneli: grafikler yatay kaydırılabilir, etiketler okunabilir kalır */
+  .chart-container-box {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chart-container-box svg {
+    min-width: 340px;
+  }
+
+  .data-table {
+    font-size: 0.85rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.65rem;
+  }
+
+  .grid-3x3 {
+    max-width: 320px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.55rem;
+  }
+
+  /* Metin CAPTCHA girişi ve yenile butonu dar ekranda alt alta */
+  .text-captcha-input-row {
+    flex-direction: column;
+  }
+
+  .canvas-wrapper {
+    flex-direction: column;
+  }
+
+  .recaptcha-head-example {
+    width: 56px;
+    height: 56px;
+  }
+
+  .recaptcha-head-target {
+    font-size: 1.35rem;
   }
 }
 
