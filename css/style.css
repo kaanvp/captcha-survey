@@ -1339,8 +1339,22 @@ a:hover {
     padding: var(--space-md);
   }
 
+  /* CAPTCHA alanı: iç içe ikinci kart kaldırılır, challenge kartı tam genişliğe yaklaşır */
   .captcha-container {
-    padding: var(--space-md);
+    padding: 0;
+    border: none;
+    background: transparent;
+    margin-top: var(--space-md);
+  }
+
+  .captcha-header {
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-xs);
+  }
+
+  .captcha-feedback-msg {
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .demo-fields-grid {
@@ -1352,6 +1366,11 @@ a:hover {
   .recaptcha-head {
     padding: 12px 14px;
     gap: 10px;
+  }
+
+  .recaptcha-card {
+    max-width: 100%;
+    border-radius: var(--radius-md);
   }
 
   .recaptcha-head-label {
@@ -1376,9 +1395,15 @@ a:hover {
     gap: 8px;
   }
 
+  .recaptcha-foot-icons {
+    gap: 0;
+    flex-shrink: 0;
+  }
+
   .rc-verify {
     padding: 0 16px;
     font-size: 0.9rem;
+    white-space: nowrap;
   }
 
   /* Metin CAPTCHA: canvas taşmadan ölçeklenir */
@@ -1483,6 +1508,11 @@ a:hover {
     font-size: 1.55rem;
   }
 
+  /* Çok dar ekranda demo formu ve CAPTCHA alanına ek yer açılır */
+  .demo-registration-box {
+    padding: 0.75rem;
+  }
+
   /* Metin CAPTCHA girişi ve yenile butonu dar ekranda alt alta */
   .text-captcha-input-row {
     flex-direction: column;
@@ -1492,6 +1522,10 @@ a:hover {
     flex-direction: column;
   }
 
+  .recaptcha-head {
+    padding: 10px 12px;
+  }
+
   .recaptcha-head-example {
     width: 56px;
     height: 56px;
@@ -1499,6 +1533,22 @@ a:hover {
 
   .recaptcha-head-target {
     font-size: 1.35rem;
+  }
+
+  .recaptcha-foot {
+    padding: 6px 6px;
+    gap: 4px;
+  }
+
+  .rc-icon-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .rc-verify {
+    padding: 0 12px;
+    font-size: 0.86rem;
+    letter-spacing: 0.02em;
   }
 }
 
