@@ -574,6 +574,7 @@ class ExperimentController {
     // Netlify Form Submission
     const formData = new URLSearchParams();
     formData.append("form-name", "captcha-deney");
+    formData.append("bot-field", ""); // honeypot alanı (boş gönderilmeli)
     formData.append("participant_code", this.participantCode);
     formData.append("order", this.order);
     formData.append("timestamp", payload.timestamp);
